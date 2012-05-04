@@ -18,8 +18,8 @@ design it first and without any care about the design.
 Running
 =======
 
-$ cd to_gweb2py_dir
-$ ./gweb2py /path/to/web2py_folder
+    $ cd to_gweb2py_dir
+    $ ./gweb2py /path/to/web2py_folder
 
 it will then ask you the web2py admin pass.
 the webserver runs on port 8000
