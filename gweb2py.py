@@ -21,6 +21,7 @@ except ImportError:
 import wx
 import wx.lib.dialogs
 import wx.lib.mixins.listctrl as listmix
+import wx.lib.flatnotebook as fnb
 
 import dircache
 import re
@@ -219,7 +220,7 @@ class Tree(wx.Panel):
         self.rootID = self.tree.AddRoot(os.path.basename(rootdir))
         self.tree.SetPyData(self.rootID, rootdir)
         self.extendTree(self.rootID)
-	# on mac cannot expand hidden root
+        # on mac cannot expand hidden root
         #self.tree.Expand(self.rootID)
 
     def extendTree(self, parentID):
@@ -437,13 +438,14 @@ class TextCtrl(wx.TextCtrl):
     def __init__(self, parent,
             style=wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL|wx.TE_RICH2):
         wx.TextCtrl.__init__(self, parent, style=style)
-	if not IS_MAC:
+        if not IS_MAC:
             self.SetBackgroundColour(wx.BLACK)
             self.SetForegroundColour(wx.WHITE)
             self.SetFont(wx.Font(8, wx.TELETYPE, wx.NORMAL, wx.NORMAL, False))
 
 class ShellCtrl(TextCtrl):
     def __init__(self, parent):
+        self._history = []
         self._prompt = '> '
         style = wx.TE_MULTILINE|wx.HSCROLL|wx.TE_RICH2|wx.TE_PROCESS_ENTER
         TextCtrl.__init__(self, parent, style)
@@ -458,20 +460,20 @@ class ShellCtrl(TextCtrl):
         text = text.strip()
         if text:
             self.GetTopLevelParent().shell_command(text)
+	    self._history.append(text)
         else:
             wx.CallAfter(self.set_prompt)
 
     def GetNumberOfLines(self):
-	n = TextCtrl.GetNumberOfLines(self)
+        n = TextCtrl.GetNumberOfLines(self)
         if IS_MAC:
             return n - 1
         return n
 
     def OnEnter(self, evt):
         self.SetInsertionPointEnd()
-        text = self.GetLineText(self.GetNumberOfLines()-1).lstrip(self._prompt)
-	print 'OnEnter', repr(text)
-        self.send_command(text)
+        text = self.GetLineText(self.GetNumberOfLines()).lstrip(self._prompt)
+        self.send_command(text.strip())
         evt.Skip()
 
     def AppendText(self, text):
@@ -482,12 +484,30 @@ class ShellCtrl(TextCtrl):
             text = text.split(', ')
             text = ',\n'.join(text)
         text = "%s\n" % text
+        if IS_MAC:
+            text = text.replace('\n', '\r')
         TextCtrl.AppendText(self, text)
         wx.CallAfter(self.set_prompt)
 
-class Notebook(wx.Notebook):
-    def __init__(self, parent):
-        wx.Notebook.__init__(self, parent, style=wx.NB_MULTILINE)
+
+# Monkey patch: do not draw a focus rectangle on tabs
+NBRendererDefault_original = fnb.FNBRendererDefault
+class FNBRendererDefaultPatched(NBRendererDefault_original):
+    def DrawFocusRectangle(self, dc, pageContainer, page):
+        pass
+fnb.FNBRendererDefault = FNBRendererDefaultPatched
+
+
+class Notebook(fnb.FlatNotebook):
+    def __init__(self, parent, style):
+        fnb.FlatNotebook.__init__(self, parent, wx.ID_ANY, style=style)
+
+#class Notebook(wx.Notebook):
+#    def __init__(self, parent):
+#        wx.Notebook.__init__(self, parent, style=wx.NB_MULTILINE)
+
+    def GetChildren(self):
+        return [c for c in fnb.FlatNotebook.GetChildren(self) if isinstance(c, Editor)]
 
     def __contains__(self, o):
         for c in self.GetChildren():
@@ -511,34 +531,40 @@ class Notebook(wx.Notebook):
         self.GetChildren()[idx].SetFocus()
 
     def DeletePage(self, idx):
+        print idx
+	if idx < 0:
+            return
         w = self.GetPage(idx)
         if w.filename in ('<shell>',):
             return
-        wx.Notebook.DeletePage(self, idx)
+        #wx.Notebook.DeletePage(self, idx)
+        fnb.FlatNotebook.DeletePage(self, idx)
 
 class LogPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, style=wx.WANTS_CHARS)
 
-        self.notebook = nb = Notebook(self)
+        style = (fnb.FNB_NO_NAV_BUTTONS | fnb.FNB_SMART_TABS
+                 | fnb.FNB_NODRAG | fnb.FNB_NO_X_BUTTON)
+        self.notebook = nb = Notebook(self, style=style)
 
         self.t_ws = t = TextCtrl(nb)
         nb.AddPage(t, "WebServer Logs")
 
         self.t_stdout = t = TextCtrl(nb)
-        nb.AddPage(t, "stdout")
+        nb.AddPage(t, "stdout", select=False)
 
         self.t_stderr = t = TextCtrl(nb)
-        nb.AddPage(t, "stderr")
+        nb.AddPage(t, "stderr", select=False)
 
         self.t_request = t = TextCtrl(nb)
-        nb.AddPage(t, "request")
+        nb.AddPage(t, "request", select=False)
 
         self.t_response = t = TextCtrl(nb)
-        nb.AddPage(t, "response")
+        nb.AddPage(t, "response", select=False)
 
         self.t_shell = t = ShellCtrl(nb)
-        nb.AddPage(t, "eval shell")
+        nb.AddPage(t, "eval shell", select=False)
 
         b = wx.BoxSizer(wx.HORIZONTAL)
         b.Add(nb, 1, wx.EXPAND, 0)
@@ -578,7 +604,7 @@ class LogPanel(wx.Panel):
 
     def request_write(self, t):
         t = t.decode('utf-8', 'replace')
-        self.t_request.AppendText(t)
+        self.t_request.AppendText(t.replace('\r', ''))
 
     def response_write(self, t):
         t = t.decode('utf-8', 'replace')
@@ -697,7 +723,7 @@ class MainPanel(wx.Panel):
 
         leftwin =  wx.SashLayoutWindow(
                 self, -1, wx.DefaultPosition, (200, 30),
-                wx.NO_BORDER|wx.SW_3D
+                wx.NO_BORDER #|wx.SW_3D
                 )
 
         leftwin.SetDefaultSize((160, 1000))
@@ -738,7 +764,10 @@ class MainPanel(wx.Panel):
 
         self.log = LogPanel(bottomwin)
 
-        self.notebook = nb = Notebook(self)
+        style = (fnb.FNB_NO_NAV_BUTTONS | fnb.FNB_MOUSE_MIDDLE_CLOSES_TABS
+                     | fnb.FNB_X_ON_TAB | fnb.FNB_SMART_TABS
+                     | fnb.FNB_DROPDOWN_TABS_LIST | fnb.FNB_NODRAG)
+        self.notebook = nb = Notebook(self, style=style)
         if USE_VTE:
             self.terminal = Terminal(nb)
             self.terminal.page_idx = self.notebook.GetPageCount()
@@ -757,7 +786,7 @@ class MainPanel(wx.Panel):
 
     def OnSize(self, event):
         wx.LayoutAlgorithm().LayoutWindow(self, self.notebook)
-	event.Skip()
+        event.Skip()
 
     def OnSashDrag(self, event):
         if event.GetDragStatus() == wx.SASH_STATUS_OUT_OF_RANGE:
@@ -814,7 +843,7 @@ class MainPanel(wx.Panel):
         evt.Skip()
 
     def open_tab(self, ndir, itemtext):
-	ndir = os.path.abspath(ndir)
+        ndir = os.path.abspath(ndir)
         ndir_isfile = os.path.isfile(ndir)
         if ndir_isfile and os.path.splitext(ndir.lower())[-1] in ('.py', '.html', '.css', '.js', '.load', '.xml', '.json', '.rss'):
             if ndir in self.notebook:
@@ -893,7 +922,7 @@ class Frame(wx.Frame):
         item2 = menu.Append(wx.ID_ANY, "Focus &editor\tCtrl+2", "Set focus to current editor window")
         item3 = menu.Append(wx.ID_ANY, "&Previous tab\tCtrl+PageUp", "Previous tab")
         item4 = menu.Append(wx.ID_ANY, "&Next tab\tCtrl+PageDown", "Next tab")
-        item5 = menu.Append(wx.ID_ANY, "&Close tab\tCtrl+4", "Close current tab.")
+        item5 = menu.Append(wx.ID_ANY, "&Close tab\tCtrl+w", "Close current tab.")
         ID6=wx.NewId()
         item6 = menu.Append(ID6, "&Clear current output window\tCtrl+K", "Clear contents of current output window")
         menuBar.Append(menu, "&Windows")
@@ -906,7 +935,7 @@ class Frame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuWindowClear, item6)
 
         self.menu_debug = wx.Menu()
-	if IS_MAC:
+        if IS_MAC:
             self.f2 = self.menu_debug.Append(wx.ID_ANY, "&Enable/Disable debug\tCtrl+F2", "Turn debugger on or off")
             self.f3 = self.menu_debug.Append(wx.ID_ANY, "&Add/Remove breakpoint...\tCtrl+F3", "Add or remove breakpoint...")
             self.f4 = self.menu_debug.Append(wx.ID_ANY, "&Enable/Disable gluon debug \tCtrl+F4", "Allow debugging web2py gluon code")
@@ -914,7 +943,7 @@ class Frame(wx.Frame):
             self.f7 = self.menu_debug.Append(wx.ID_ANY, "&Debug step\tCtrl+F7", "Stop after one line of code.")
             self.f8 = self.menu_debug.Append(wx.ID_ANY, "&Debug next\tCtrl+F8", "Stop on the next line in or below the given frame.")
             self.f9 = self.menu_debug.Append(wx.ID_ANY, "&Debug until\tCtrl+F9", "Stop when the line with the line number greater than the current one is reached or when returning from current frame")
-	else:
+        else:
             self.f2 = self.menu_debug.Append(wx.ID_ANY, "&Enable/Disable debug\tF2", "Turn debugger on or off")
             self.f3 = self.menu_debug.Append(wx.ID_ANY, "&Add/Remove breakpoint...\tF3", "Add or remove breakpoint...")
             self.f4 = self.menu_debug.Append(wx.ID_ANY, "&Enable/Disable gluon debug \tF4", "Allow debugging web2py gluon code")
@@ -978,6 +1007,14 @@ class Frame(wx.Frame):
     #    #        #print 'debug disabled',
     #    #        self.ToggleMenuDebugItems()
     #    #        pass
+
+    def SendSizeEvent(self):
+        if IS_MAC:
+            w, h = self.GetSize()
+            self.SetSize((w-1, h-1))
+            self.SetSize((w, h))
+        else:
+            wx.Frame.SendSizeEvent(self)
 
     def ToggleMenuDebugItems(self):
         #print 'aqui'
@@ -1105,24 +1142,24 @@ class Frame(wx.Frame):
 
     def OnMenuFocusFileBrowser(self, evt):
         self.panel.tree.SetFocus()
-        evt.Skip()
+        #evt.Skip()
 
     def OnMenuFocusNotebook(self, evt):
         self.panel.notebook.SetFocus()
-        evt.Skip()
+        #evt.Skip()
 
     def OnMenuWindowsPrev(self, evt):
         self.panel.notebook.AdvanceSelection(False)
-        evt.Skip()
+        #evt.Skip()
 
     def OnMenuWindowsNext(self, evt):
         self.panel.notebook.AdvanceSelection(True)
-        evt.Skip()
+        #evt.Skip()
 
     def OnMenuCloseTab(self, evt):
         idx = self.panel.notebook.GetSelection()
         self.CloseTab(idx)
-        evt.Skip()
+        #evt.Skip()
 
     def OnMenuWindowClear(self, evt):
         ctrl = self.panel.log.notebook.GetCurrentPage()
@@ -1131,6 +1168,7 @@ class Frame(wx.Frame):
 
     def CloseTab(self, idx):
         self.panel.notebook.DeletePage(idx)
+	self.Refresh()
 
     def OnMenuDebugNext(self, evt):
         if self.server and self.server.process is not None:
@@ -1154,13 +1192,7 @@ class Frame(wx.Frame):
         if self.server and self.server.process is not None:
             self.sb.SetStatusText("")
             self.panel.rightwin.Show(not self.panel.rightwin.IsShown())
-	    if IS_MAC:
-		# Mac hack to force a relayout
-		w, h = self.GetSize()
-		self.SetSize((w-1, h-1))
-		self.SetSize((w, h))
-	    else:
-                self.SendSizeEvent()
+            self.SendSizeEvent()
             stream = self.server.process.GetOutputStream()
             stream.write('toggle_debug\n')
 
