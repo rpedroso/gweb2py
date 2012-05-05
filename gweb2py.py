@@ -30,6 +30,7 @@ opj = os.path.join
 APP_PATH = os.path.realpath(os.path.dirname(__file__))
 
 PORT = 8000
+IS_MAC = 'wxMac' in wx.PlatformInfo
 
 def get_dir_file(filepath):
     filepath_list = filepath.split(os.sep)
@@ -436,9 +437,10 @@ class TextCtrl(wx.TextCtrl):
     def __init__(self, parent,
             style=wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL|wx.TE_RICH2):
         wx.TextCtrl.__init__(self, parent, style=style)
-        self.SetBackgroundColour(wx.BLACK)
-        self.SetForegroundColour(wx.WHITE)
-        self.SetFont(wx.Font(8, wx.TELETYPE, wx.NORMAL, wx.NORMAL, False))
+	if not IS_MAC:
+            self.SetBackgroundColour(wx.BLACK)
+            self.SetForegroundColour(wx.WHITE)
+            self.SetFont(wx.Font(8, wx.TELETYPE, wx.NORMAL, wx.NORMAL, False))
 
 class ShellCtrl(TextCtrl):
     def __init__(self, parent):
@@ -459,9 +461,16 @@ class ShellCtrl(TextCtrl):
         else:
             wx.CallAfter(self.set_prompt)
 
+    def GetNumberOfLines(self):
+	n = TextCtrl.GetNumberOfLines(self)
+        if IS_MAC:
+            return n - 1
+        return n
+
     def OnEnter(self, evt):
         self.SetInsertionPointEnd()
-        text = self.GetLineText(self.GetNumberOfLines()).lstrip(self._prompt)
+        text = self.GetLineText(self.GetNumberOfLines()-1).lstrip(self._prompt)
+	print 'OnEnter', repr(text)
         self.send_command(text)
         evt.Skip()
 
@@ -694,7 +703,6 @@ class MainPanel(wx.Panel):
         leftwin.SetDefaultSize((160, 1000))
         leftwin.SetOrientation(wx.LAYOUT_VERTICAL)
         leftwin.SetAlignment(wx.LAYOUT_LEFT)
-        leftwin.SetBackgroundColour(wx.Colour(0, 255, 0))
         leftwin.SetSashVisible(wx.SASH_RIGHT, True)
         leftwin.SetExtraBorderSize(0)
         self.leftwin = leftwin
@@ -712,7 +720,6 @@ class MainPanel(wx.Panel):
         rightwin.SetDefaultSize((160, 1000))
         rightwin.SetOrientation(wx.LAYOUT_VERTICAL)
         rightwin.SetAlignment(wx.LAYOUT_RIGHT)
-        rightwin.SetBackgroundColour(wx.Colour(0, 255, 255))
         rightwin.SetSashVisible(wx.SASH_LEFT, True)
         self.rightwin = rightwin
         winids.append(rightwin.GetId())
@@ -725,7 +732,6 @@ class MainPanel(wx.Panel):
         bottomwin.SetDefaultSize((1000, 150))
         bottomwin.SetOrientation(wx.LAYOUT_HORIZONTAL)
         bottomwin.SetAlignment(wx.LAYOUT_BOTTOM)
-        bottomwin.SetBackgroundColour(wx.Colour(0, 0, 255))
         bottomwin.SetSashVisible(wx.SASH_TOP, True)
         self.bottomwin = bottomwin
         winids.append(bottomwin.GetId())
@@ -808,6 +814,7 @@ class MainPanel(wx.Panel):
         evt.Skip()
 
     def open_tab(self, ndir, itemtext):
+	ndir = os.path.abspath(ndir)
         ndir_isfile = os.path.isfile(ndir)
         if ndir_isfile and os.path.splitext(ndir.lower())[-1] in ('.py', '.html', '.css', '.js', '.load', '.xml', '.json', '.rss'):
             if ndir in self.notebook:
@@ -899,13 +906,22 @@ class Frame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuWindowClear, item6)
 
         self.menu_debug = wx.Menu()
-        self.f2 = self.menu_debug.Append(wx.ID_ANY, "&Enable/Disable debug\tF2", "Turn debugger on or off")
-        self.f3 = self.menu_debug.Append(wx.ID_ANY, "&Add/Remove breakpoint...\tF3", "Add or remove breakpoint...")
-        self.f4 = self.menu_debug.Append(wx.ID_ANY, "&Enable/Disable gluon debug \tF4", "Allow debugging web2py gluon code")
-        self.f6 = self.menu_debug.Append(wx.ID_ANY, "&Continue\tF6", "Continue to next breakpoint or until the end")
-        self.f7 = self.menu_debug.Append(wx.ID_ANY, "&Debug step\tF7", "Stop after one line of code.")
-        self.f8 = self.menu_debug.Append(wx.ID_ANY, "&Debug next\tF8", "Stop on the next line in or below the given frame.")
-        self.f9 = self.menu_debug.Append(wx.ID_ANY, "&Debug until\tF9", "Stop when the line with the line number greater than the current one is reached or when returning from current frame")
+	if IS_MAC:
+            self.f2 = self.menu_debug.Append(wx.ID_ANY, "&Enable/Disable debug\tCtrl+F2", "Turn debugger on or off")
+            self.f3 = self.menu_debug.Append(wx.ID_ANY, "&Add/Remove breakpoint...\tCtrl+F3", "Add or remove breakpoint...")
+            self.f4 = self.menu_debug.Append(wx.ID_ANY, "&Enable/Disable gluon debug \tCtrl+F4", "Allow debugging web2py gluon code")
+            self.f6 = self.menu_debug.Append(wx.ID_ANY, "&Continue\tCtrl+F6", "Continue to next breakpoint or until the end")
+            self.f7 = self.menu_debug.Append(wx.ID_ANY, "&Debug step\tCtrl+F7", "Stop after one line of code.")
+            self.f8 = self.menu_debug.Append(wx.ID_ANY, "&Debug next\tCtrl+F8", "Stop on the next line in or below the given frame.")
+            self.f9 = self.menu_debug.Append(wx.ID_ANY, "&Debug until\tCtrl+F9", "Stop when the line with the line number greater than the current one is reached or when returning from current frame")
+	else:
+            self.f2 = self.menu_debug.Append(wx.ID_ANY, "&Enable/Disable debug\tF2", "Turn debugger on or off")
+            self.f3 = self.menu_debug.Append(wx.ID_ANY, "&Add/Remove breakpoint...\tF3", "Add or remove breakpoint...")
+            self.f4 = self.menu_debug.Append(wx.ID_ANY, "&Enable/Disable gluon debug \tF4", "Allow debugging web2py gluon code")
+            self.f6 = self.menu_debug.Append(wx.ID_ANY, "&Continue\tF6", "Continue to next breakpoint or until the end")
+            self.f7 = self.menu_debug.Append(wx.ID_ANY, "&Debug step\tF7", "Stop after one line of code.")
+            self.f8 = self.menu_debug.Append(wx.ID_ANY, "&Debug next\tF8", "Stop on the next line in or below the given frame.")
+            self.f9 = self.menu_debug.Append(wx.ID_ANY, "&Debug until\tF9", "Stop when the line with the line number greater than the current one is reached or when returning from current frame")
         #item6 = self.menu_debug.Append(wx.ID_ANY, "&Eval \tF9", "")
         menuBar.Append(self.menu_debug, "&Debug")
 
@@ -1015,9 +1031,9 @@ class Frame(wx.Frame):
 
     def DoClose(self, can_close):
         if can_close:
-            self.Destroy()
             if self.server and self.server.process:
                 self.server.stop()
+            self.Destroy()
         #else:
         #    Flash(self)
 
@@ -1138,7 +1154,13 @@ class Frame(wx.Frame):
         if self.server and self.server.process is not None:
             self.sb.SetStatusText("")
             self.panel.rightwin.Show(not self.panel.rightwin.IsShown())
-            self.SendSizeEvent()
+	    if IS_MAC:
+		# Mac hack to force a relayout
+		w, h = self.GetSize()
+		self.SetSize((w-1, h-1))
+		self.SetSize((w, h))
+	    else:
+                self.SendSizeEvent()
             stream = self.server.process.GetOutputStream()
             stream.write('toggle_debug\n')
 

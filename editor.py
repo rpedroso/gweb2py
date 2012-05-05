@@ -3,12 +3,29 @@ import wx
 import wx.stc as stc
 import keyword
 
-faces = { 'times': 'Ubuntu Mono',
-          'mono' : 'Ubuntu Mono',
-          'helv' : 'Ubuntu Mono',
-          'other': 'Ubuntu Mono',
-          'size' : 10,
-          'size2': 10,
+if wx.Platform == '__WXMSW__':
+    faces = { 'times': 'Times New Roman',
+              'mono' : 'Courier New',
+              'helv' : 'Arial',
+              'other': 'Comic Sans MS',
+              'size' : 10,
+              'size2': 8,
+             }
+elif wx.Platform == '__WXMAC__':
+    faces = { 'times': 'Times New Roman',
+              'mono' : 'Monaco',
+              'helv' : 'Monaco',
+              'other': 'Comic Sans MS',
+              'size' : 12,
+              'size2': 10,
+             }
+else:
+    faces = { 'times': 'Times New Roman',
+              'mono' : 'Ubuntu Mono',
+              'helv' : 'Arial',
+              'other': 'Comic Sans MS',
+              'size' : 10,
+              'size2': 8,
          }
 
 class PythonSTC(stc.StyledTextCtrl):
@@ -333,7 +350,7 @@ class Editor(PythonSTC):
         try:
             f.write(self.GetText())
         finally:
-	    f.close()
+            f.close()
         self.SetSavePoint()
 
 if __name__ == '__main__':
