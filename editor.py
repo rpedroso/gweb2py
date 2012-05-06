@@ -272,6 +272,7 @@ class Editor(PythonSTC):
     def trace_line_clear(self):
         self.MarkerDeleteAll(PythonSTC.MARK_DEBUG)
         self.MarkerDeleteAll(PythonSTC.MARK_LINE_DEBUG)
+        self.Refresh()
 
     def trace_line(self, lineno):
         #self.ctrl.feed_child('^[:%s\nzo' % lineno)
