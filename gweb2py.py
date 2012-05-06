@@ -39,7 +39,8 @@ def get_dir_file(filepath):
             'static', 'uploads', 'modules'):
         if d in filepath_list:
             idx = filepath_list.index(d) + 1
-            return '[%s]%s' % (d[0].upper(), opj(*filepath_list[idx:]))
+            if filepath_list[idx:]:
+                return '[%s]%s' % (d[0].upper(), opj(*filepath_list[idx:]))
     return filepath_list[-1]
 
 myEVT_BPLIST_REMOVE = wx.NewEventType()
@@ -445,11 +446,13 @@ class TextCtrl(wx.TextCtrl):
 
 class ShellCtrl(TextCtrl):
     def __init__(self, parent):
-        self._history = []
+        self._history = ['']
+        self._hist_idx = 0
         self._prompt = '> '
         style = wx.TE_MULTILINE|wx.HSCROLL|wx.TE_RICH2|wx.TE_PROCESS_ENTER
         TextCtrl.__init__(self, parent, style)
         self.set_prompt()
+        self.Bind(wx.EVT_KEY_DOWN , self.OnKeyDown)
         self.Bind(wx.EVT_TEXT_ENTER, self.OnEnter)
 
     def set_prompt(self):
@@ -461,14 +464,67 @@ class ShellCtrl(TextCtrl):
         if text:
             self.GetTopLevelParent().shell_command(text)
 	    self._history.append(text)
+            self._hist_idx = len(self._history)
+            if self._hist_idx > 1000:
+                self._history.pop(1)
+                self._hist_idx = len(self._history)
         else:
             wx.CallAfter(self.set_prompt)
+
+    def Clear(self):
+        TextCtrl.ChangeValue(self, '')
+        self.set_prompt()
 
     def GetNumberOfLines(self):
         n = TextCtrl.GetNumberOfLines(self)
         if IS_MAC:
             return n - 1
         return n
+
+    def GetCurrentLine(self):
+        curPos = self.GetInsertionPoint()
+        lineno = self.PositionToXY(curPos)[1]
+        return lineno
+
+    def GetLinePosition(self, lineno):
+        x = self.GetLineLength(lineno)
+        start = self.XYToPosition(0, lineno)
+        end = self.XYToPosition(x, lineno)
+        return (start, end)
+
+    def ClearLine(self, lineno):
+        start, end = self.GetLinePosition(lineno)
+        print start, end
+        #if end < 0:
+        #    end = start
+        self.Replace(start, end, '')
+
+    def OnKeyDown(self, evt):
+        #print 'keyup', dir(evt)
+        text = None
+        key = evt.KeyCode
+        if key == wx.WXK_DOWN:
+            self._hist_idx += 1
+            try:
+                text = self._history[self._hist_idx]
+            except IndexError:
+                self._hist_idx = 0
+                text = self._history[self._hist_idx]
+        elif key == wx.WXK_UP:
+            self._hist_idx -= 1
+            try:
+                text = self._history[self._hist_idx]
+            except IndexError:
+                self._hist_idx = len(self._history) - 1
+                text = self._history[self._hist_idx]
+
+        if text is not None:
+            lineno = self.GetCurrentLine()
+            self.ClearLine(lineno)
+            self.set_prompt()
+            TextCtrl.AppendText(self, text)
+        else:
+            evt.Skip()
 
     def OnEnter(self, evt):
         self.SetInsertionPointEnd()
@@ -507,7 +563,8 @@ class Notebook(fnb.FlatNotebook):
 #        wx.Notebook.__init__(self, parent, style=wx.NB_MULTILINE)
 
     def GetChildren(self):
-        return [c for c in fnb.FlatNotebook.GetChildren(self) if isinstance(c, Editor)]
+        return [c for c in fnb.FlatNotebook.GetChildren(self) \
+                if not isinstance(c, fnb.PageContainer)]
 
     def __contains__(self, o):
         for c in self.GetChildren():
@@ -1163,7 +1220,7 @@ class Frame(wx.Frame):
 
     def OnMenuWindowClear(self, evt):
         ctrl = self.panel.log.notebook.GetCurrentPage()
-        ctrl.ChangeValue('')
+        ctrl.Clear()
         evt.Skip()
 
     def CloseTab(self, idx):
