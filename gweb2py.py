@@ -6,8 +6,6 @@ os.putenv('WINGDB_ACTIVE', '1')
 
 try:
     USE_VTE = True
-    # test an import failure
-    #import zzzzzzzzzz
     import gobject
     gobject.threads_init()
 
@@ -59,7 +57,7 @@ class MyEvent(wx.PyCommandEvent):
 class BPList(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
     def __init__(self, parent):
         wx.ListCtrl.__init__(self, parent,
-            style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.LC_HRULES|wx.LC_VRULES#|wx.LC_SINGLE_SEL
+            style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.LC_HRULES|wx.LC_VRULES
             )
         listmix.ListCtrlAutoWidthMixin.__init__(self)
 
@@ -81,26 +79,15 @@ class BPList(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         evt.Skip()
 
     def OnMotion(self, evt):
-        #totalWidth=0
-        #tmpWidth=0
-        #flags = wx.LIST_HITTEST_ONITEM
         row, where = self.HitTest((evt.m_x, evt.m_y))
-        #for i in range(self.GetColumnCount()):
-        #    tmpWidth = self.GetColumnWidth(i)
-        #    totalWidth += tmpWidth
-        #    if evt.m_x < totalWidth:
-        #        col = i
-        #        break
 
-        if row>-1: # and col>-1:
-            tip = self._tooltips[row] #self.GetTooltip(row, col)
+        if row>-1:
+            tip = self._tooltips[row]
             self.SetToolTip(wx.ToolTip(tip))
         evt.Skip()
 
     def OnItemActivated(self, event):
         self.currentItem = event.m_itemIndex
-        #print("OnItemActivated: %s\nTopItem: %s\n" %
-        #                   (self.GetItemText(self.currentItem), self.GetTopItem()))
         lineno = self.GetItemText(self.currentItem)
         filename = self.getColumnText(self.currentItem, 1)
         self.remove((lineno, filename))
@@ -113,15 +100,11 @@ class BPList(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         return item.GetText()
 
     def append(self, bp):
-        #print >>sys.stderr, repr(bp)
         self._bp_list.append(bp)
         self._tooltips.append(bp[1])
         self.SetItemCount(len(self._bp_list))
-        #print >>sys.stderr, repr(self._bp_list)
 
     def remove(self, bp):
-        #print >>sys.stderr, repr(bp)
-        #print >>sys.stderr, repr(self._bp_list)
         self._bp_list.remove(bp)
         self._tooltips.remove(bp[1])
         self.SetItemCount(len(self._bp_list))
@@ -148,7 +131,6 @@ class Web2pyServer(object):
         self.process = wx.Process(self.parent)
         self.process.Redirect()
         p = self.app_path
-        #os.putenv('WINGDB_ACTIVE', "1")
         sys.path.insert(0, self.w2p_path)
 
         os.chdir(self.w2p_path)
@@ -162,10 +144,7 @@ class Web2pyServer(object):
             from gluon.main import save_password
             save_password(passwd, port)
 
-        #cmd = 'python -u ./web2py.py -a "%s"' % passwd
         cmd = '%s -u %s %s %s' % (sys.executable, opj(p, 'gw2pserver.py'), port, self.w2p_path)
-        #print >>sys.stderr, 'cmd:', cmd
-        #cmd = 'python -u %s' % os.path.join(p, 'w2pdbg.py')
 
         self.pid = wx.Execute(cmd, wx.EXEC_ASYNC, self.process)
 
@@ -210,11 +189,10 @@ class Tree(wx.Panel):
 
         # only build that tree if not previously expanded
         old_pydata = self.tree.GetPyData(itemID)
-        if 1: #old_pydata[1] == False:
-            # clean the subtree and rebuild it
-            self.tree.DeleteChildren(itemID)
-            self.extendTree(itemID)
-            self.tree.SetPyData(itemID, old_pydata)
+        # clean the subtree and rebuild it
+        self.tree.DeleteChildren(itemID)
+        self.extendTree(itemID)
+        self.tree.SetPyData(itemID, old_pydata)
 
     def buildTree(self, rootdir):
         '''Add a new root element and then its children'''
@@ -268,10 +246,8 @@ class Tree(wx.Panel):
                 newParentID = childID
                 newParentPath = child_path
                 newsubdirs = dircache.listdir(newParentPath) if os.path.isdir(child_path) else []
-                #newsubdirs.sort()
                 for grandchild in newsubdirs:
                     grandchild_path = opj(newParentPath, grandchild)
-                    #if os.path.isdir(grandchild_path) and not os.path.islink(grandchild_path):
                     if not child.startswith('.') and not os.path.islink(grandchild_path):
                         grandchildID = self.tree.AppendItem(newParentID, grandchild)
                         self.tree.SetPyData(grandchildID, grandchild_path)
@@ -303,13 +279,6 @@ if USE_VTE:
             ctrl.set_font_from_string(font)
             #ctrl.set_scrollback_lines(scrollback)
             self.Layout()
-
-        #    self.Bind(wx.EVT_SIZE, self.OnSize)
-
-        #def OnSize(self, evt):
-        #    print evt.Size
-        #    self.ctrl.queue_draw()
-        #    self.ctrl.set_size_request(*evt.Size)
 
         def SetFocus(self):
             self.ctrl.grab_focus()
@@ -358,12 +327,7 @@ if USE_VTE:
         def openfile(self, filename):
             current_path = os.getcwd()
             os.chdir(APP_PATH)
-            #--noplugin -ni NONE -u vim/gweb2py.vim -X -U NONE
-            #pid = self.run_command('vim --noplugin -u %s -ni NONE %s -X -U NONE' %
-            pid = self.run_command('vim -ni NONE %s -X -U NONE' %
-                #(os.path.join(APP_PATH, "vim", "gweb2py.vim"),
-                filename)
-                #)
+            pid = self.run_command('vim -ni NONE %s -X -U NONE' % filename)
             os.chdir(current_path)
             return pid
 
@@ -389,40 +353,6 @@ else:
     FIXED_TABS = 0
     from editor import Editor
 
-#class Flash(wx.PopupWindow):
-#    def __init__(self, parent):
-#        wx.PopupWindow.__init__(self, parent)
-#        self.SetBackgroundColour("CADET BLUE")
-#
-#        st = wx.StaticText(self, -1,
-#                          "This is a special kind of top level\n"
-#                          "window that can be used for\n"
-#                          "popup menus, combobox popups\n"
-#                          "and such.\n\n"
-#                          "Try positioning the demo near\n"
-#                          "the bottom of the screen and \n"
-#                          "hit the button again.\n\n"
-#                          "In this demo this window can\n"
-#                          "be dragged with the left button\n"
-#                          "and closed with the right."
-#                          ,
-#                          pos=(10,10))
-#
-#        sz = st.GetBestSize()
-#        self.SetSize( (sz.width+20, sz.height+20) )
-#
-#        self.Bind(wx.EVT_LEFT_UP, self.OnMouseLeftUp)
-#
-#        w, h = parent.GetSize()
-#        self.Position((0,50), (w-sz.width, 50))
-#
-#        self.Show()
-#        wx.CallAfter(self.Refresh)
-#        wx.CallLater(2000, self.OnMouseLeftUp)
-#
-#    def OnMouseLeftUp(self, evt=None):
-#        self.Show(False)
-#        self.Destroy()
 
 class InfoPanel(wx.Panel):
     def __init__(self, parent):
@@ -431,7 +361,7 @@ class InfoPanel(wx.Panel):
         b = wx.BoxSizer(wx.VERTICAL)
         s = wx.StaticText(self, label="Breakpoints")
         self.bp_list = BPList(self)
-        b.Add(s, 0) #, wx.EXPAND, 0)
+        b.Add(s, 0)
         b.Add(self.bp_list, 1, wx.EXPAND, 0)
         self.SetSizer(b)
 
@@ -456,7 +386,6 @@ class ShellCtrl(TextCtrl):
         self.Bind(wx.EVT_TEXT_ENTER, self.OnEnter)
 
     def set_prompt(self):
-        #self.AppendText(self._prompt)
         TextCtrl.AppendText(self, self._prompt)
 
     def send_command(self, text):
@@ -495,12 +424,9 @@ class ShellCtrl(TextCtrl):
     def ClearLine(self, lineno):
         start, end = self.GetLinePosition(lineno)
         print start, end
-        #if end < 0:
-        #    end = start
         self.Replace(start, end, '')
 
     def OnKeyDown(self, evt):
-        #print 'keyup', dir(evt)
         text = None
         key = evt.KeyCode
         if key == wx.WXK_DOWN:
@@ -558,6 +484,7 @@ class Notebook(fnb.FlatNotebook):
     def __init__(self, parent, style):
         fnb.FlatNotebook.__init__(self, parent, wx.ID_ANY, style=style)
 
+
 #class Notebook(wx.Notebook):
 #    def __init__(self, parent):
 #        wx.Notebook.__init__(self, parent, style=wx.NB_MULTILINE)
@@ -588,7 +515,7 @@ class Notebook(fnb.FlatNotebook):
         self.GetChildren()[idx].SetFocus()
 
     def DeletePage(self, idx):
-        print idx
+        #print idx
 	if idx < 0:
             return
         w = self.GetPage(idx)
@@ -677,12 +604,7 @@ class BitmapWindow(wx.Window):
         wx.Window.__init__(self, parent, style=wx.FULL_REPAINT_ON_RESIZE)
 
         self.img = None
-        #self.img = wx.Image(filename)
-        #self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
-
-    #def OnSize(self, evt):
-    #    self.Refresh()
 
     def OnPaint(self, evt):
         if not self.img:
@@ -704,7 +626,6 @@ class BitmapWindow(wx.Window):
         rh = ih * factor
 
         img.Rescale(iw*factor, ih*factor, wx.IMAGE_QUALITY_HIGH)
-        #img = img.ResampleBox(rw, rh)
 
         bmp = img.ConvertToBitmap()
         dc.DrawBitmap(bmp, (w-rw)/2., (h-rh)/2., True)
@@ -743,7 +664,6 @@ class BitmapInfoPanel(wx.Panel):
         self.SetSizer(b)
 
     def SetInfo(self, img):
-        #XXX: print dir(img)
         #self.t_filename.SetValue(repr(img))
         w, h = img.GetSize()
         self.t_width.SetValue(str(w))
@@ -766,11 +686,6 @@ class BitmapPanel(wx.Panel):
         self.bmp_win.SetFilenameBitmap(filename)
         self.bmp_info.SetInfo(self.bmp_win.img)
 
-    #def SetProps(self, props={}):
-    #    for k in props.keys():
-    #        p = getattr(self.bmp_info, 't_%s' % k)
-    #        if p:
-    #            p.SetValue(props[k])
 
 class MainPanel(wx.Panel):
     def __init__(self, parent, w2p_path):
@@ -780,7 +695,7 @@ class MainPanel(wx.Panel):
 
         leftwin =  wx.SashLayoutWindow(
                 self, -1, wx.DefaultPosition, (200, 30),
-                wx.NO_BORDER #|wx.SW_3D
+                wx.NO_BORDER|wx.SW_3D
                 )
 
         leftwin.SetDefaultSize((160, 1000))
@@ -792,8 +707,6 @@ class MainPanel(wx.Panel):
         winids.append(leftwin.GetId())
 
         self.tree = t = Tree(leftwin)
-        #t.includeDirs = [os.path.join(w2p_path, d)
-        #                   for d in ['models', 'views', 'controllers', 'modules', 'static']]
         t.buildTree(opj(w2p_path, 'applications'))
         t.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnActivated)
 
@@ -847,7 +760,6 @@ class MainPanel(wx.Panel):
 
     def OnSashDrag(self, event):
         if event.GetDragStatus() == wx.SASH_STATUS_OUT_OF_RANGE:
-            #self.log.write('drag is out of range')
             return
 
         eobj = event.GetEventObject()
@@ -870,11 +782,7 @@ class MainPanel(wx.Panel):
             else:
                 self.notebook.DeletePage(i)
 
-            #wx.SafeYield()
         wx.SafeYield()
-        #evt = wx.EventLoop.GetActive()
-        #while evt.Pending():
-        #    evt.Dispatch()
         import time
         time.sleep(.2)
         wx.SafeYield()
@@ -893,9 +801,6 @@ class MainPanel(wx.Panel):
         item = evt.GetItem()
         if item:
             ndir = t.GetPyData(item)
-            #print ndir
-            #itemtext = t.GetItemText(item)
-            #self.open_tab(ndir, itemtext)
             self.open_tab(ndir, get_dir_file(ndir))
         evt.Skip()
 
@@ -911,7 +816,6 @@ class MainPanel(wx.Panel):
                 editor.filename = ndir
                 self.notebook.AddPage(editor, itemtext)
                 self.notebook.set_selection_by_filename(ndir)
-                #pid = editor.run_command('vim -u %s -ni NONE %s' % (os.path.join(APP_PATH, "vim", "myvimrc"), ndir))
                 pid = editor.openfile(ndir)
                 editor.pid = pid
 
@@ -923,7 +827,6 @@ class MainPanel(wx.Panel):
             self.open_image(ndir, itemtext)
         elif os.path.isdir(ndir):
             self.terminal.ctrl.feed_child('\ncd %s\n' % ndir)
-            #self.terminal.ctrl.feed_child('')
 
     def open_image(self, ndir, itemtext):
         if '<image>' in self.notebook:
@@ -1026,7 +929,6 @@ class Frame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuDebugContinue, self.f6)
         self.Bind(wx.EVT_MENU, self.OnMenuDebugStep, self.f7)
         self.Bind(wx.EVT_MENU, self.OnMenuDebugNext, self.f8)
-        #self.Bind(wx.EVT_MENU, self.OnMenuDebugEval, item6)
         self.Bind(wx.EVT_MENU, self.OnMenuDebugAllowGluon, self.f4)
         self.Bind(wx.EVT_MENU, self.OnMenuDebugAddBP, self.f3)
 
@@ -1076,9 +978,6 @@ class Frame(wx.Frame):
     def ToggleMenuDebugItems(self):
         #print 'aqui'
         items = ['f3', 'f4', 'f6', 'f7', 'f8', 'f9']
-        #if self.panel:
-        #    print self.panel
-        #    print self.panel.rightwin.IsShown()
         if self.panel and self.panel.rightwin.IsShown(): # Debug enabled
             for item in items:
                 self.menu_debug.Enable(getattr(self, item).GetId(), True)
@@ -1128,8 +1027,6 @@ class Frame(wx.Frame):
             if self.server and self.server.process:
                 self.server.stop()
             self.Destroy()
-        #else:
-        #    Flash(self)
 
     def AppOpen(self):
         if not self.w2p_path:
@@ -1185,8 +1082,6 @@ class Frame(wx.Frame):
             self.w2p_path = None
             self.panel.Destroy()
             self.panel = None
-        #else:
-        #    Flash(self)
 
     def OnMenuAppClose(self, evt):
         if self.panel:
@@ -1199,24 +1094,19 @@ class Frame(wx.Frame):
 
     def OnMenuFocusFileBrowser(self, evt):
         self.panel.tree.SetFocus()
-        #evt.Skip()
 
     def OnMenuFocusNotebook(self, evt):
         self.panel.notebook.SetFocus()
-        #evt.Skip()
 
     def OnMenuWindowsPrev(self, evt):
         self.panel.notebook.AdvanceSelection(False)
-        #evt.Skip()
 
     def OnMenuWindowsNext(self, evt):
         self.panel.notebook.AdvanceSelection(True)
-        #evt.Skip()
 
     def OnMenuCloseTab(self, evt):
         idx = self.panel.notebook.GetSelection()
         self.CloseTab(idx)
-        #evt.Skip()
 
     def OnMenuWindowClear(self, evt):
         ctrl = self.panel.log.notebook.GetCurrentPage()
@@ -1263,14 +1153,6 @@ class Frame(wx.Frame):
             self.sb.SetStatusText("running")
             stream = self.server.process.GetOutputStream()
             stream.write('set_until\n')
-
-    #def OnMenuDebugEval(self, evt):
-    #    if self.server and self.server.process is not None:
-    #        dlg = wx.TextEntryDialog(self, 'arg to eval', 'arg', '')
-    #        if dlg.ShowModal() == wx.ID_OK:
-    #            val = dlg.GetValue().strip()
-    #            if val:
-    #                self.server.process.GetOutputStream().write("print %s\n" % val)
 
     def OnMenuDebugAddBP(self, evt):
         lineno = None
