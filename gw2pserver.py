@@ -39,11 +39,11 @@ def in_user_code(fn, line):
     if line.startswith('@') \
             or line.startswith('def ') or line.startswith('class '):
         return False
-    if '/applications/' in fn:
-        if '/applications/admin/' in fn:
+    if '%sapplications%s' % (os.sep, os.sep) in fn:
+        if '%sapplications%sadmin%s' % (os.sep, os.sep, os.sep) in fn:
             return False
         return True
-    if ALLOW_GLUON and '/gluon/' in fn:
+    if ALLOW_GLUON and '%sgluon%s' % (os.sep, os.sep) in fn:
         return True
 
     return False
@@ -183,6 +183,7 @@ class RequestHandler(WSGIRequestHandler):
 def _toggle_command(i_queue, d_queue):
     global DEBUG_ENABLED
     global ALLOW_GLUON
+    global srv
     while True:
         #STDOUT('>')
         command = raw_input()
@@ -192,6 +193,8 @@ def _toggle_command(i_queue, d_queue):
             ALLOW_GLUON = not ALLOW_GLUON
         elif command.startswith('SH:'):
             i_queue.put(command[3:])
+        elif command == '__quit__':
+            srv.shutdown()
         else:
             d_queue.put(command)
 
@@ -239,6 +242,7 @@ def _interpreter(i_queue, d_queue):
 
 def run(port):
     global q
+    global srv
     import gluon.main
     from gluon.settings import global_settings
     global_settings.web2py_crontype = 'soft'

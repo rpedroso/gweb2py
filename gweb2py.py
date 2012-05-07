@@ -30,6 +30,7 @@ APP_PATH = os.path.realpath(os.path.dirname(__file__))
 
 PORT = 8000
 IS_MAC = 'wxMac' in wx.PlatformInfo
+IS_WIN = 'wxMSW' in wx.PlatformInfo
 
 def get_dir_file(filepath):
     filepath_list = filepath.split(os.sep)
@@ -123,7 +124,10 @@ class Web2pyServer(object):
 
     def stop(self):
         if self.pid:
-            self.process.Kill(self.pid, wx.SIGTERM)
+            stream = self.process.GetOutputStream()
+            stream.write('__quit__\n')
+            stream.flush()
+            #wx.CallAfter(self.process.Kill, self.pid, wx.SIGTERM)
 
         self.is_running = False
 
@@ -144,7 +148,7 @@ class Web2pyServer(object):
             from gluon.main import save_password
             save_password(passwd, port)
 
-        cmd = '%s -u %s %s %s' % (sys.executable, opj(p, 'gw2pserver.py'), port, self.w2p_path)
+        cmd = '"%s" -u "%s" %s "%s"' % (sys.executable, opj(p, 'gw2pserver.py'), port, self.w2p_path)
 
         self.pid = wx.Execute(cmd, wx.EXEC_ASYNC, self.process)
 
@@ -157,11 +161,12 @@ class Tree(wx.Panel):
     def __init__(self, parent):
         # this is just setup boilerplate
         wx.Panel.__init__(self, parent)
+        #self.SetDoubleBuffered(True)
 
         self.includeDirs=[]
         self.excludeDirs=[]
 
-        style = wx.TR_HIDE_ROOT | wx.TR_HAS_BUTTONS
+        style = wx.TR_DEFAULT_STYLE
         self.tree = wx.TreeCtrl(self, style=style)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -170,6 +175,7 @@ class Tree(wx.Panel):
         self.SetSizer(sizer)
 
         self.tree.Bind(wx.EVT_TREE_ITEM_EXPANDING, self.OnExpand)
+
 
     def OnExpand(self, event):
         '''onExpand is called when the user expands a node on the tree
@@ -200,7 +206,7 @@ class Tree(wx.Panel):
         self.tree.SetPyData(self.rootID, rootdir)
         self.extendTree(self.rootID)
         # on mac cannot expand hidden root
-        #self.tree.Expand(self.rootID)
+        self.tree.Expand(self.rootID)
 
     def extendTree(self, parentID):
         '''extendTree is a semi-lazy directory tree builder. It takes
@@ -369,7 +375,7 @@ class TextCtrl(wx.TextCtrl):
     def __init__(self, parent,
             style=wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL|wx.TE_RICH2):
         wx.TextCtrl.__init__(self, parent, style=style)
-        if not IS_MAC:
+        if not IS_MAC and not IS_WIN:
             self.SetBackgroundColour(wx.BLACK)
             self.SetForegroundColour(wx.WHITE)
             self.SetFont(wx.Font(8, wx.TELETYPE, wx.NORMAL, wx.NORMAL, False))
@@ -418,7 +424,7 @@ class ShellCtrl(TextCtrl):
     def GetLinePosition(self, lineno):
         x = self.GetLineLength(lineno)
         start = self.XYToPosition(0, lineno)
-        end = self.XYToPosition(x, lineno)
+        end = start + x
         return (start, end)
 
     def ClearLine(self, lineno):
@@ -480,9 +486,14 @@ class FNBRendererDefaultPatched(NBRendererDefault_original):
 fnb.FNBRendererDefault = FNBRendererDefaultPatched
 
 
-class Notebook(fnb.FlatNotebook):
+if IS_WIN:
+    NotebookBase = wx.Notebook
+else:
+    NotebookBase = fnb.FlatNotebook
+
+class Notebook(NotebookBase):
     def __init__(self, parent, style):
-        fnb.FlatNotebook.__init__(self, parent, wx.ID_ANY, style=style)
+        NotebookBase.__init__(self, parent, wx.ID_ANY, style=style)
 
 
 #class Notebook(wx.Notebook):
@@ -490,7 +501,7 @@ class Notebook(fnb.FlatNotebook):
 #        wx.Notebook.__init__(self, parent, style=wx.NB_MULTILINE)
 
     def GetChildren(self):
-        return [c for c in fnb.FlatNotebook.GetChildren(self) \
+        return [c for c in NotebookBase.GetChildren(self) \
                 if not isinstance(c, fnb.PageContainer)]
 
     def __contains__(self, o):
@@ -522,14 +533,18 @@ class Notebook(fnb.FlatNotebook):
         if w.filename in ('<shell>',):
             return
         #wx.Notebook.DeletePage(self, idx)
-        fnb.FlatNotebook.DeletePage(self, idx)
+        NotebookBase.DeletePage(self, idx)
 
 class LogPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, style=wx.WANTS_CHARS)
 
-        style = (fnb.FNB_NO_NAV_BUTTONS | fnb.FNB_SMART_TABS
+        if IS_WIN:
+            style = 0
+        else:
+            style = (fnb.FNB_NO_NAV_BUTTONS | fnb.FNB_SMART_TABS
                  | fnb.FNB_NODRAG | fnb.FNB_NO_X_BUTTON)
+
         self.notebook = nb = Notebook(self, style=style)
 
         self.t_ws = t = TextCtrl(nb)
@@ -691,14 +706,14 @@ class MainPanel(wx.Panel):
     def __init__(self, parent, w2p_path):
         wx.Panel.__init__(self, parent)
 
+        self.Freeze()
         winids = []
 
-        leftwin =  wx.SashLayoutWindow(
-                self, -1, wx.DefaultPosition, (200, 30),
-                wx.NO_BORDER|wx.SW_3D
+        leftwin =  wx.SashLayoutWindow( self,
+                style=wx.NO_BORDER | wx.SW_3D
                 )
 
-        leftwin.SetDefaultSize((160, 1000))
+        leftwin.SetDefaultSize((160, -1))
         leftwin.SetOrientation(wx.LAYOUT_VERTICAL)
         leftwin.SetAlignment(wx.LAYOUT_LEFT)
         leftwin.SetSashVisible(wx.SASH_RIGHT, True)
@@ -711,9 +726,9 @@ class MainPanel(wx.Panel):
         t.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnActivated)
 
         rightwin = wx.SashLayoutWindow(self,
-                style=wx.NO_BORDER|wx.SW_3D
+                style=wx.NO_BORDER | wx.SW_3D
                 )
-        rightwin.SetDefaultSize((160, 1000))
+        rightwin.SetDefaultSize((160, -1))
         rightwin.SetOrientation(wx.LAYOUT_VERTICAL)
         rightwin.SetAlignment(wx.LAYOUT_RIGHT)
         rightwin.SetSashVisible(wx.SASH_LEFT, True)
@@ -723,9 +738,9 @@ class MainPanel(wx.Panel):
         rightwin.Hide()
 
         bottomwin = wx.SashLayoutWindow(self,
-                style=wx.NO_BORDER|wx.SW_3D
+                style=wx.NO_BORDER | wx.SW_3D
                 )
-        bottomwin.SetDefaultSize((1000, 150))
+        bottomwin.SetDefaultSize((-1, 150))
         bottomwin.SetOrientation(wx.LAYOUT_HORIZONTAL)
         bottomwin.SetAlignment(wx.LAYOUT_BOTTOM)
         bottomwin.SetSashVisible(wx.SASH_TOP, True)
@@ -734,7 +749,10 @@ class MainPanel(wx.Panel):
 
         self.log = LogPanel(bottomwin)
 
-        style = (fnb.FNB_NO_NAV_BUTTONS | fnb.FNB_MOUSE_MIDDLE_CLOSES_TABS
+        if IS_WIN:
+            style = 0
+        else:
+            style = (fnb.FNB_NO_NAV_BUTTONS | fnb.FNB_MOUSE_MIDDLE_CLOSES_TABS
                      | fnb.FNB_X_ON_TAB | fnb.FNB_SMART_TABS
                      | fnb.FNB_DROPDOWN_TABS_LIST | fnb.FNB_NODRAG)
         self.notebook = nb = Notebook(self, style=style)
@@ -753,6 +771,10 @@ class MainPanel(wx.Panel):
             wx.EVT_SASH_DRAGGED_RANGE, self.OnSashDrag,
             id=min(winids), id2=max(winids)
             )
+        self.Thaw()
+
+    def Layout(self):
+        wx.LayoutAlgorithm().LayoutWindow(self, self.notebook)
 
     def OnSize(self, event):
         wx.LayoutAlgorithm().LayoutWindow(self, self.notebook)
@@ -765,11 +787,11 @@ class MainPanel(wx.Panel):
         eobj = event.GetEventObject()
 
         if eobj is self.leftwin:
-            self.leftwin.SetDefaultSize((event.GetDragRect().width, 1000))
+            self.leftwin.SetDefaultSize((event.GetDragRect().width, -1))
         elif eobj is self.rightwin:
-            self.rightwin.SetDefaultSize((event.GetDragRect().width, 1000))
+            self.rightwin.SetDefaultSize((event.GetDragRect().width, -1))
         elif eobj is self.bottomwin:
-            self.bottomwin.SetDefaultSize((1000, event.GetDragRect().height))
+            self.bottomwin.SetDefaultSize((-1, event.GetDragRect().height))
 
         wx.LayoutAlgorithm().LayoutWindow(self, self.notebook)
         self.notebook.Refresh()
@@ -806,6 +828,8 @@ class MainPanel(wx.Panel):
 
     def open_tab(self, ndir, itemtext):
         ndir = os.path.abspath(ndir)
+        if IS_WIN:
+            ndir = ndir.lower()
         ndir_isfile = os.path.isfile(ndir)
         if ndir_isfile and os.path.splitext(ndir.lower())[-1] in ('.py', '.html', '.css', '.js', '.load', '.xml', '.json', '.rss'):
             if ndir in self.notebook:
@@ -826,7 +850,8 @@ class MainPanel(wx.Panel):
         elif ndir_isfile and os.path.splitext(ndir.lower())[-1] in ('.png', '.jpg', '.gif', '.ico'):
             self.open_image(ndir, itemtext)
         elif os.path.isdir(ndir):
-            self.terminal.ctrl.feed_child('\ncd %s\n' % ndir)
+            if USE_VTE:
+                self.terminal.ctrl.feed_child('\ncd %s\n' % ndir)
 
     def open_image(self, ndir, itemtext):
         if '<image>' in self.notebook:
@@ -845,7 +870,9 @@ class MainPanel(wx.Panel):
 
 class Frame(wx.Frame):
     def __init__(self, parent , size, w2p_path=None):
-        wx.Frame.__init__(self, parent, size=size, title="gweb2py")
+        wx.Frame.__init__(self, parent, size=size, title="gweb2py",
+                style=(wx.DEFAULT_FRAME_STYLE | wx.CLIP_CHILDREN))
+        self.SetDoubleBuffered(True)
 
         self.server = None
         self.panel = None
@@ -856,36 +883,49 @@ class Frame(wx.Frame):
         menuBar = wx.MenuBar()
 
         menu = wx.Menu()
-        item1 = menu.Append(wx.ID_ANY, "&New", "")
-        item2 = menu.Append(wx.ID_ANY, "&Open", "")
-        item3 = menu.Append(wx.ID_ANY, "&Close", "")
-        menuBar.Append(menu, "&Application")
+        self.menu_item_w2p_open = menu.Append(wx.ID_ANY, "&Open", "")
+        self.menu_item_w2p_close = menu.Append(wx.ID_ANY, "&Close", "")
+        menu.AppendSeparator()
+        self.menu_item_w2p_quit = menu.Append(wx.ID_ANY, "&Quit", "")
+        menuBar.Append(menu, "&Web2py")
+        self.menu_w2p = menu
 
-        self.Bind(wx.EVT_MENU, self.OnMenuAppNew, item1)
-        self.Bind(wx.EVT_MENU, self.OnMenuAppOpen, item2)
-        self.Bind(wx.EVT_MENU, self.OnMenuAppClose, item3)
+        self.Bind(wx.EVT_MENU, self.OnMenuW2pOpen, self.menu_item_w2p_open)
+        self.Bind(wx.EVT_MENU, self.OnMenuW2pClose, self.menu_item_w2p_close)
+        self.Bind(wx.EVT_MENU, self.OnMenuW2pQuit, self.menu_item_w2p_quit)
+
+        menu = wx.Menu()
+        self.menu_item_app_new = menu.Append(wx.ID_ANY, "&New", "")
+        menuBar.Append(menu, "&Application")
+        self.menu_app = menu
+
+        self.Bind(wx.EVT_MENU, self.OnMenuAppNew, self.menu_item_app_new)
 
         menu = wx.Menu()
         #item1 = menu.Append(wx.ID_ANY, "&New", "")
         #item2 = menu.Append(wx.ID_ANY, "&Open", "")
-        item3 = menu.Append(wx.ID_ANY, "&Save\tCtrl-S", "Save current file")
+        self.menu_item_file_save = menu.Append(wx.ID_ANY, "&Save\tCtrl-S", "Save current file")
         #item4 = menu.Append(wx.ID_ANY, "&Close", "")
         menuBar.Append(menu, "&File")
+        self.menu_file = menu
 
         #self.Bind(wx.EVT_MENU, self.OnMenuFileNew, item1)
         #self.Bind(wx.EVT_MENU, self.OnMenuFileOpen, item2)
-        self.Bind(wx.EVT_MENU, self.OnMenuFileSave, item3)
+        self.Bind(wx.EVT_MENU, self.OnMenuFileSave, self.menu_item_file_save)
         #self.Bind(wx.EVT_MENU, self.OnMenuFileClose, item4)
 
         menu = wx.Menu()
         item1 = menu.Append(wx.ID_ANY, "Focus file &browser\tCtrl+1", "Set focus to file browser window")
         item2 = menu.Append(wx.ID_ANY, "Focus &editor\tCtrl+2", "Set focus to current editor window")
+        menu.AppendSeparator()
         item3 = menu.Append(wx.ID_ANY, "&Previous tab\tCtrl+PageUp", "Previous tab")
         item4 = menu.Append(wx.ID_ANY, "&Next tab\tCtrl+PageDown", "Next tab")
         item5 = menu.Append(wx.ID_ANY, "&Close tab\tCtrl+w", "Close current tab.")
         ID6=wx.NewId()
+        menu.AppendSeparator()
         item6 = menu.Append(ID6, "&Clear current output window\tCtrl+K", "Clear contents of current output window")
         menuBar.Append(menu, "&Windows")
+        self.menu_windows = menu
 
         self.Bind(wx.EVT_MENU, self.OnMenuFocusFileBrowser, item1)
         self.Bind(wx.EVT_MENU, self.OnMenuFocusNotebook, item2)
@@ -899,6 +939,7 @@ class Frame(wx.Frame):
             self.f2 = self.menu_debug.Append(wx.ID_ANY, "&Enable/Disable debug\tCtrl+F2", "Turn debugger on or off")
             self.f3 = self.menu_debug.Append(wx.ID_ANY, "&Add/Remove breakpoint...\tCtrl+F3", "Add or remove breakpoint...")
             self.f4 = self.menu_debug.Append(wx.ID_ANY, "&Enable/Disable gluon debug \tCtrl+F4", "Allow debugging web2py gluon code")
+            self.menu_debug.AppendSeparator()
             self.f6 = self.menu_debug.Append(wx.ID_ANY, "&Continue\tCtrl+F6", "Continue to next breakpoint or until the end")
             self.f7 = self.menu_debug.Append(wx.ID_ANY, "&Debug step\tCtrl+F7", "Stop after one line of code.")
             self.f8 = self.menu_debug.Append(wx.ID_ANY, "&Debug next\tCtrl+F8", "Stop on the next line in or below the given frame.")
@@ -907,6 +948,7 @@ class Frame(wx.Frame):
             self.f2 = self.menu_debug.Append(wx.ID_ANY, "&Enable/Disable debug\tF2", "Turn debugger on or off")
             self.f3 = self.menu_debug.Append(wx.ID_ANY, "&Add/Remove breakpoint...\tF3", "Add or remove breakpoint...")
             self.f4 = self.menu_debug.Append(wx.ID_ANY, "&Enable/Disable gluon debug \tF4", "Allow debugging web2py gluon code")
+            self.menu_debug.AppendSeparator()
             self.f6 = self.menu_debug.Append(wx.ID_ANY, "&Continue\tF6", "Continue to next breakpoint or until the end")
             self.f7 = self.menu_debug.Append(wx.ID_ANY, "&Debug step\tF7", "Stop after one line of code.")
             self.f8 = self.menu_debug.Append(wx.ID_ANY, "&Debug next\tF8", "Stop on the next line in or below the given frame.")
@@ -948,40 +990,42 @@ class Frame(wx.Frame):
         if self.w2p_path:
             self.AppOpen()
 
-    #def OnUpdateUI(self, evt):
-    #    self.ToggleMenuDebugItems()
-    #    #self.OnTimer(None)
-    #    #if not self.panel:
-    #    #    self.ToggleMenuDebugItems()
-    #    #    return
-    #    #else:
-    #    #    #print 'app opened',
-    #    #    pass
-    #    #if self.server and self.server.process is not None:
-    #    #    if self.panel.rightwin.IsShown(): # Debug enabled
-    #    #        #print 'debug enabled',
-    #    #        self.ToggleMenuDebugItems()
-    #    #        pass
-    #    #    else:
-    #    #        #print 'debug disabled',
-    #    #        self.ToggleMenuDebugItems()
-    #    #        pass
+    #def SendSizeEvent(self):
+    #    if IS_MAC or IS_WIN:
+    #        w, h = self.GetSize()
+    #        self.SetSize((w-1, h-1))
+    #        self.SetSize((w, h))
+    #    else:
+    #        wx.Frame.SendSizeEvent(self)
 
-    def SendSizeEvent(self):
-        if IS_MAC:
-            w, h = self.GetSize()
-            self.SetSize((w-1, h-1))
-            self.SetSize((w, h))
-        else:
-            wx.Frame.SendSizeEvent(self)
+    def ToggleMenuW2pItems(self):
+        item = 'menu_item_w2p_open'
+        self.menu_w2p.Enable(getattr(self, item).GetId(), not bool(self.panel))
+        item = 'menu_item_w2p_close'
+        self.menu_w2p.Enable(getattr(self, item).GetId(), bool(self.panel))
+
+    def ToggleMenuAppItems(self):
+        item = 'menu_item_app_new'
+        self.menu_app.Enable(getattr(self, item).GetId(), bool(self.panel))
+
+    def ToggleMenuFileItems(self):
+        item = 'menu_item_file_save'
+        self.menu_file.Enable(getattr(self, item).GetId(), bool(self.panel))
+
+    def ToggleMenuWindowsItems(self):
+        for item in self.menu_windows.GetMenuItems():
+            self.menu_windows.Enable(item.GetId(), bool(self.panel))
 
     def ToggleMenuDebugItems(self):
         #print 'aqui'
+        self.menu_debug.Enable(self.f2.GetId(), True)
         items = ['f3', 'f4', 'f6', 'f7', 'f8', 'f9']
         if self.panel and self.panel.rightwin.IsShown(): # Debug enabled
             for item in items:
                 self.menu_debug.Enable(getattr(self, item).GetId(), True)
         else:
+            if not self.panel:
+                items.append('f2')
             for item in items:
                 self.menu_debug.Enable(getattr(self, item).GetId(), False)
 
@@ -1045,7 +1089,7 @@ class Frame(wx.Frame):
         os.chdir(self.w2p_path)
         self.panel = MainPanel(self, self.w2p_path)
         self.panel.notebook.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
-        self.Layout()
+        #self.Layout()
         self.SendSizeEvent()
         self.timer.Start(500)
 
@@ -1069,7 +1113,7 @@ class Frame(wx.Frame):
             else:
                 self.panel.tree.rebuild_tree()
 
-    def OnMenuAppOpen(self, evt):
+    def OnMenuW2pOpen(self, evt):
         if not self.panel:
             self.AppOpen()
         else:
@@ -1078,14 +1122,19 @@ class Frame(wx.Frame):
 
     def ClosedPanel(self, can_close):
         if can_close:
-            self.server.process.Kill(self.server.pid)
+            if self.server and self.server.process:
+                self.server.stop()
             self.w2p_path = None
             self.panel.Destroy()
             self.panel = None
 
-    def OnMenuAppClose(self, evt):
+    def OnMenuW2pClose(self, evt):
         if self.panel:
             self.panel.ClosePanel(self.ClosedPanel)
+
+    def OnMenuW2pQuit(self, evt):
+        if self.panel:
+            self.panel.ClosePanel(self.DoClose)
 
     def OnMenuFileSave(self, evt):
         editor = self.panel.notebook.GetCurrentPage()
@@ -1139,7 +1188,7 @@ class Frame(wx.Frame):
         if self.server and self.server.process is not None:
             self.sb.SetStatusText("")
             self.panel.rightwin.Show(not self.panel.rightwin.IsShown())
-            self.SendSizeEvent()
+            self.panel.Layout()
             stream = self.server.process.GetOutputStream()
             stream.write('toggle_debug\n')
 
@@ -1207,6 +1256,10 @@ class Frame(wx.Frame):
         self.panel.log.shell_write(text)
 
     def OnTimer(self, evt=None):
+        self.ToggleMenuW2pItems()
+        self.ToggleMenuAppItems()
+        self.ToggleMenuFileItems()
+        self.ToggleMenuWindowsItems()
         self.ToggleMenuDebugItems()
         if self.server and self.server.process is not None:
             if self.server.process.IsErrorAvailable():
@@ -1218,7 +1271,8 @@ class Frame(wx.Frame):
                         break
                     text += t
                 sys.stderr.write(text)
-                self.panel.log.stderr_write(text)
+                if self.panel:
+                    self.panel.log.stderr_write(text)
                 return
 
             stream = self.server.process.GetInputStream()
@@ -1296,5 +1350,4 @@ if __name__ == '__main__':
 
     app = wx.App(False)
     f = Frame(None, size=(800, 600), w2p_path=w2p_path)
-    f.SendSizeEvent()
     app.MainLoop()
