@@ -990,13 +990,13 @@ class Frame(wx.Frame):
         if self.w2p_path:
             self.AppOpen()
 
-    #def SendSizeEvent(self):
-    #    if IS_MAC or IS_WIN:
-    #        w, h = self.GetSize()
-    #        self.SetSize((w-1, h-1))
-    #        self.SetSize((w, h))
-    #    else:
-    #        wx.Frame.SendSizeEvent(self)
+    def SendSizeEvent(self):
+        if IS_MAC:
+            w, h = self.GetSize()
+            self.SetSize((w-1, h-1))
+            self.SetSize((w, h))
+        else:
+            wx.Frame.SendSizeEvent(self)
 
     def ToggleMenuW2pItems(self):
         item = 'menu_item_w2p_open'
@@ -1293,14 +1293,15 @@ class Frame(wx.Frame):
                         missing = int(lenght)-len(text)
                         if missing > 0:
                             text += stream.read(missing)
-                        if what == 'LOG':
-                            self.panel.log.ws_write(text)
-                        elif what == 'STATUS':
-                            self.panel.log.stdout_write(text)
-                        elif what == 'REQUEST_HEADERS':
-                            self.panel.log.request_write(text)
-                        elif what == 'RESPONSE_HEADERS':
-                            self.panel.log.response_write(text)
+			if self.panel:
+                            if what == 'LOG':
+                                self.panel.log.ws_write(text)
+                            elif what == 'STATUS':
+                                self.panel.log.stdout_write(text)
+                            elif what == 'REQUEST_HEADERS':
+                                self.panel.log.request_write(text)
+                            elif what == 'RESPONSE_HEADERS':
+                                self.panel.log.response_write(text)
 
 
     def AskPassword(self):
