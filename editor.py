@@ -7,25 +7,25 @@ if wx.Platform == '__WXMSW__':
     faces = { 'times': 'Times New Roman',
               'mono' : 'Courier New',
               'helv' : 'Arial',
-              'other': 'Comic Sans MS',
-              'size' : 10,
-              'size2': 8,
+              'other': 'Arial',
+              'size' : 11,
+              'size2': 9,
              }
 elif wx.Platform == '__WXMAC__':
     faces = { 'times': 'Times New Roman',
               'mono' : 'Monaco',
               'helv' : 'Monaco',
-              'other': 'Comic Sans MS',
+              'other': 'Monaco',
               'size' : 12,
               'size2': 10,
              }
 else:
     faces = { 'times': 'Times New Roman',
               'mono' : 'Ubuntu Mono',
-              'helv' : 'Arial',
-              'other': 'Comic Sans MS',
-              'size' : 10,
-              'size2': 8,
+              'helv' : 'Ubuntu Mono',
+              'other': 'Ubuntu Mono',
+              'size' : 11,
+              'size2': 9,
          }
 
 class PythonSTC(stc.StyledTextCtrl):
@@ -41,6 +41,8 @@ class PythonSTC(stc.StyledTextCtrl):
                  style=0):
         stc.StyledTextCtrl.__init__(self, parent, ID, pos, size, style)
 
+        self.SetLayoutCache(wx.stc.STC_CACHE_DOCUMENT)
+
         self.CmdKeyAssign(ord('B'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMIN)
         self.CmdKeyAssign(ord('N'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMOUT)
 
@@ -52,8 +54,8 @@ class PythonSTC(stc.StyledTextCtrl):
         #self.SetEOLMode(stc.STC_EOL_CRLF)
         self.SetUseAntiAliasing(True)
 
-        self.SetEdgeMode(stc.STC_EDGE_BACKGROUND)
-        self.SetEdgeColumn(79)
+        #self.SetEdgeMode(stc.STC_EDGE_BACKGROUND)
+        #self.SetEdgeColumn(79)
 
         self.MarkerDefine(self.MARK_BP, stc.STC_MARK_CIRCLE, "red", "red")
         self.MarkerDefine(self.MARK_DEBUG, stc.STC_MARK_ARROW, "yellow", "yellow")
@@ -90,6 +92,7 @@ class PythonSTC(stc.StyledTextCtrl):
 
         self.SetCaretForeground("BLUE")
 
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.Bind(stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
         self.Bind(stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
 
@@ -146,6 +149,64 @@ class PythonSTC(stc.StyledTextCtrl):
 
     def OnSavePointReached(self, evt):
         self._dirty = False
+
+    def OnKeyDown(self, event):
+        if self.CallTipActive():
+            self.CallTipCancel()
+        key = event.GetKeyCode()
+
+        RETURN = (wx.WXK_NUMPAD_ENTER, wx.WXK_RETURN)
+        if key in RETURN and event.ControlDown():
+            # Tips
+            if event.ShiftDown():
+                pos = self.GetCurrentPos()
+                self.CallTipSetBackground("yellow")
+                self.CallTipShow(pos, 'lots of of text: blah, blah, blah\n\n'
+                                 'show some suff, maybe parameters..\n\n'
+                                 'fubar(param1, param2)')
+            # Code completion
+            else:
+                #lst = []
+                #for x in range(50000):
+                #    lst.append('%05d' % x)
+                #st = " ".join(lst)
+                #print len(st)
+                #self.AutoCompShow(0, st)
+
+                kw = keyword.kwlist[:]
+                #kw.append("this_is_a_much_much_much_much_much_much_much_longer_value")
+
+                kw.sort()  # Python sorts are case sensitive
+                self.AutoCompSetIgnoreCase(False)  # so this needs to match
+
+                ## Images are specified with a appended "?type"
+                #for i in range(len(kw)):
+                #    if kw[i] in keyword.kwlist:
+                #        kw[i] = kw[i] + "?1"
+
+                self.AutoCompShow(0, " ".join(kw))
+
+        elif key in RETURN:
+            line = self.GetCurrentLine()
+            text, _ = self.GetCurLine()
+            pos = self.GetCurrentPos()
+            c = self.GetCharAt(pos-1)
+            print c
+            last_indent = self.GetLineIndentation(line)
+            if c and chr(c) in (':', '(', '{', '['):
+                last_indent += 4
+            elif 'return' in text:
+                last_indent -= 4
+            elif 'break' in text:
+                last_indent -= 4
+            elif 'pass' in text:
+                last_indent -= 4
+
+            self.NewLine()
+            #self.SetLineIndentation(line+1, last_indent)
+            self.AddText(' '*last_indent)
+        else:
+            event.Skip()
 
     def OnUpdateUI(self, evt):
         # check for matching braces
@@ -310,8 +371,7 @@ class Editor(PythonSTC):
         page_n = notebook.get_selection_by_filename(self.filename)
         notebook.DeletePage(page_n)
 
-    def openfile(self, filename):
-        #print filename.endswith('.py')
+    def openfile(self, filename, lineno=0):
         if filename.endswith('.py'):
             self.SetLexer(stc.STC_LEX_PYTHON)
             self.SetProperty("fold", "1")
@@ -319,10 +379,16 @@ class Editor(PythonSTC):
             self.SetKeyWords(0, " ".join(keyword.kwlist))
             self.style_it()
             self.python_styles()
-        else:
+        elif filename.endswith('.html'):
+            import html_styles
             self.SetLexer(stc.STC_LEX_HTML)
-            self.SetProperty("asp.default.language", "1")
-            self.SetProperty("fold", "1")
+            #self.SetProperty("asp.default.language", "1")
+            self.SetProperty("fold", "0")
+            self.style_it()
+            html_styles.style_control(self, faces)
+
+        if lineno > 0:
+            self.goto_line(lineno)
 
         self.SetIndent(4)               # Proscribed indent size for wx
         self.SetIndentationGuides(True) # Show indent guides
@@ -354,12 +420,15 @@ class Editor(PythonSTC):
             f.close()
         self.SetSavePoint()
 
+    def goto_line(self, lineno):
+        self.GotoLine(lineno)
+
 if __name__ == '__main__':
     app = wx.App()
     f = wx.Frame(None)
     ed = Editor(f)
 
-    ed.SetText(open('stc_test.py').read())
+    ed.openfile(sys.argv[1])
     ed.EmptyUndoBuffer()
     ed.Colourise(0, -1)
 

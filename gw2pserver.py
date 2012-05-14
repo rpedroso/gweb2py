@@ -11,6 +11,7 @@ from wsgiref.simple_server import make_server, WSGIRequestHandler
 
 ALLOW_GLUON = False
 DEBUG_ENABLED = False
+SERV = True
 
 #toggle_input_ev = threading.Event()
 
@@ -183,6 +184,7 @@ class RequestHandler(WSGIRequestHandler):
 def _toggle_command(i_queue, d_queue):
     global DEBUG_ENABLED
     global ALLOW_GLUON
+    global SERV
     global srv
     while True:
         #STDOUT('>')
@@ -194,7 +196,13 @@ def _toggle_command(i_queue, d_queue):
         elif command.startswith('SH:'):
             i_queue.put(command[3:])
         elif command == '__quit__':
-            srv.shutdown()
+            SERV = False
+            #if hasattr(srv, 'shutdown'):
+            #    sys.stderr.write('shutting down\n')
+            #    srv.shutdown()
+            #else:
+            #    sys.stderr.write('closing\n')
+            #    srv.server_close()
         else:
             d_queue.put(command)
 
@@ -262,7 +270,8 @@ def run(port):
         #print e
         srv = make_server('', port, app, handler_class=RequestHandler)
         WSOUT('Using wsgiref')
-        srv.serve_forever()
+        while SERV:
+            srv.handle_request()
 
 
 if __name__ == '__main__':
