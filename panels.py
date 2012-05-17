@@ -244,7 +244,7 @@ if USE_VTE:
             self.ctrl.feed_child(':sign unplace %s\n' % lineno)
 
         def goto_line(self, lineno):
-            print lineno
+            #print lineno
             self.ctrl.feed_child(':%s\n' % lineno)
 else:
     FIXED_TABS = 0
@@ -518,6 +518,8 @@ class MainPanel(wx.Panel):
             wx.EVT_SASH_DRAGGED_RANGE, self.OnSashDrag,
             id=min(winids), id2=max(winids))
         self.notebook.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
+        if not IS_WIN:
+            self.Bind(fnb.EVT_FLATNOTEBOOK_PAGE_CLOSING, self.on_notebook_page_closing)
 
         self.Thaw()
 
@@ -552,18 +554,41 @@ class MainPanel(wx.Panel):
         else:
             evt.Skip()
 
+    # FIXME: should be an event
+    def signal_can_close_tab(self, n):
+        self.notebook_close_tab(n)
+
+    def on_notebook_page_closing(self, evt):
+        page = self.notebook.GetPage(evt.GetSelection())
+        if isinstance(page, Editor):
+            if page.is_dirty():
+                evt.Veto()
+            else:
+                evt.Skip()
+        else:
+            evt.Skip()
+
     def ClosePanel(self, cb):
-        vims = list(self.notebook.GetChildren())
+        children = list(self.notebook.GetChildren())
         # need to order by desc
         # to avoid pages index changes
-        pages = range(len(vims))
-        pages.reverse()
-        for i in pages:
-            vim = pages[i]
-            if isinstance(vim, Editor):
-                vim.quit()
-            else:
-                self.notebook.DeletePage(i)
+        #pages = range(len(children))
+        #pages.reverse()
+        #for i in pages:
+        #    vim = pages[i]
+        #    if isinstance(vim, Editor):
+        #        vim.quit()
+        #    else:
+        #        #self.notebook.DeletePage(i)
+        #        self.notebook_close_tab(i)
+        for i, page in enumerate(children):
+            if not isinstance(page, Editor):
+                self.notebook_close_tab(i)
+
+        children = list(self.notebook.GetChildren())
+        for page in children:
+            if isinstance(page, Editor):
+                page.quit()
 
         #wx.SafeYield()
         #import time
@@ -774,7 +799,7 @@ class MainPanel(wx.Panel):
 
     def notebook_close_tab(self, idx):
         self.notebook.DeletePage(idx)
-        self.Refresh()
+        #self.Refresh()
 
     def notebook_setfocus(self):
         self.notebook.SetFocus()

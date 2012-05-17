@@ -328,10 +328,16 @@ else:
 
         def __init__(self, *args, **kwargs):
             fnb.FlatNotebook.__init__(self, *args, **kwargs)
-            self.Bind(fnb.EVT_FLATNOTEBOOK_PAGE_CHANGED, self.on_changed)
+            #self.Bind(fnb.EVT_FLATNOTEBOOK_PAGE_CLOSING, self.on_closing)
 
-        def on_changed(self, event):
-            wx.CallAfter(self.SetFocus)
+        #def on_closing(self, event):
+        #    self.DeletePage(event.GetSelection())
+
+        #def on_changed(self, event):
+        #    wx.CallAfter(self.SetFocus)
+        def AdvanceSelection(self, bForward=True):
+            fnb.FlatNotebook.AdvanceSelection(self, bForward)
+            self.SetFocus()
 
 
     NotebookBase = NB
@@ -370,6 +376,8 @@ class Notebook(NotebookBase):
 
     def SetFocus(self):
         idx = self.GetSelection()
+        print idx
+        print ">>>", self.GetChildren()
         try:
             self.GetChildren()[idx].SetFocus()
         except IndexError:
@@ -379,6 +387,7 @@ class Notebook(NotebookBase):
         #print idx
         if idx < 0:
             return
+
         w = self.GetPage(idx)
         if w and w.filename in ('<shell>',):
             return

@@ -90,5 +90,6 @@ def styles(faces):
 
 
 def style_control(ctrl, faces, offset=0):
+    set_style = ctrl.StyleSetSpec
     for key, value in styles(faces).iteritems():
-        ctrl.StyleSetSpec(key+offset, value)
+        set_style(key + offset, value)

@@ -451,12 +451,19 @@ class Editor(wx.Panel):
     def run_command(self, *args):
         pass
 
+    def is_dirty(self):
+        return self._ctrl._dirty
+
     def quit(self):
         if self._ctrl._dirty:
             return
-        notebook = self._ctrl.GetParent()
-        page_n = notebook.get_selection_by_filename(self._ctrl.filename)
-        notebook.DeletePage(page_n)
+
+        # FIXME: Send an Event
+        notebook = self.GetParent()
+        page_n = notebook.get_selection_by_filename(self.filename)
+        #notebook.DeletePage(page_n)
+        main_panel = self.GetParent().GetParent()
+        main_panel.signal_can_close_tab(page_n)
 
     def openfile(self, filename, lineno=0):
         if filename.endswith('.py'):
