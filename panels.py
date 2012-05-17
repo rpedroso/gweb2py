@@ -743,7 +743,10 @@ class MainPanel(wx.Panel):
         ret = app_create(name, request)
         if ret:
             self.tree.rebuild_tree()
-        return ret
+            return ret
+        import errno
+        raise IOError(errno.ENOENT, "'welcome.w2p' probably missing",
+                opj(self.w2p_path, 'welcome.w2p'))
 
     def app_debug_mode(self, debug=True):
         self.rightwin.Show(not self.rightwin.IsShown())

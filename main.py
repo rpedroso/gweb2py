@@ -158,9 +158,15 @@ class Main(toplevel.Frame):
     def OnMenuAppNew(self, evt):
         name = toplevel.dialog_app_new(self)
         if name:
-            ret = self.panel.app_new(name)
-            if not ret:
-                toplevel.error('Could not create app %s' % p)
+            try:
+                self.panel.app_new(name)
+            except IOError, e:
+                toplevel.error(self,
+                        'Could not create application %s\n\n'
+                        'Possible causes:\n'
+                        "- You do not have a 'welcome.w2p' file in %s\n"
+                        "- There is already an application named %s" % (
+                            name, os.path.dirname(e.filename), name))
 
     def OnMenuW2pOpen(self, evt):
         if not self.panel:
