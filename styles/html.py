@@ -20,7 +20,8 @@
 
 import wx.stc
 
-HTML_KEYWORDS = ("a abbr acronym address applet area b base basefont bdo big"
+def keywords():
+    return ("a abbr acronym address applet area b base basefont bdo big"
     " blockquote body br button caption center cite code col colgroup dd del"
     " dfn dir div dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6"
     " head hr html i iframe img input ins isindex kbd label legend li link map"
@@ -46,7 +47,7 @@ HTML_KEYWORDS = ("a abbr acronym address applet area b base basefont bdo big"
     " menulabel nav progress section switch tabbox active command"
     " contenteditable ping public !doctype")
 
-def html_styles(faces):
+def styles(faces):
     return {
     wx.stc.STC_H_DEFAULT:
         "fore:#000000,back:#ffffff,face:%(helv)s,size:%(size)d" % faces,
@@ -114,26 +115,26 @@ def html_styles(faces):
     wx.stc.STC_H_SGML_BLOCK_DEFAULT:
         "fore:#000066,back:#CCCCE0,face:%(helv)s,size:%(size)d" % faces,
 
-    wx.stc.STC_HPHP_DEFAULT:
-        "fore:#000033,back:#efefff,face:%(helv)s,size:%(size)d,eolfilled" % faces,
-    wx.stc.STC_HPHP_HSTRING:
-        "fore:#bF00bF,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_HPHP_SIMPLESTRING:
-        "fore:#009F00,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_HPHP_WORD:
-        "fore:#7F007F,back:#efefff,face:%(helv)s,size:%(size)d,bold" % faces,
-    wx.stc.STC_HPHP_NUMBER:
-        "fore:#CC9900,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_HPHP_VARIABLE:
-        "fore:#00007F,back:#efefff,face:%(helv)s,size:%(size)d,italics" % faces,
-    wx.stc.STC_HPHP_COMMENT:
-        "fore:#3F7F3F,back:#efffff,face:%(helv)s,size:%(size)d,italics" % faces,
-    wx.stc.STC_HPHP_COMMENTLINE:
-        "fore:#007F00,back:#effffe,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_HPHP_HSTRING_VARIABLE:
-        "fore:#00007F,back:#efefff,face:%(helv)s,size:%(size)d,italics" % faces,
-    wx.stc.STC_HPHP_OPERATOR:
-        "fore:#660000,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
+    #wx.stc.STC_HPHP_DEFAULT:
+    #    "fore:#000033,back:#efefff,face:%(helv)s,size:%(size)d,eolfilled" % faces,
+    #wx.stc.STC_HPHP_HSTRING:
+    #    "fore:#bF00bF,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
+    #wx.stc.STC_HPHP_SIMPLESTRING:
+    #    "fore:#009F00,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
+    #wx.stc.STC_HPHP_WORD:
+    #    "fore:#7F007F,back:#efefff,face:%(helv)s,size:%(size)d,bold" % faces,
+    #wx.stc.STC_HPHP_NUMBER:
+    #    "fore:#CC9900,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
+    #wx.stc.STC_HPHP_VARIABLE:
+    #    "fore:#00007F,back:#efefff,face:%(helv)s,size:%(size)d,italics" % faces,
+    #wx.stc.STC_HPHP_COMMENT:
+    #    "fore:#3F7F3F,back:#efffff,face:%(helv)s,size:%(size)d,italics" % faces,
+    #wx.stc.STC_HPHP_COMMENTLINE:
+    #    "fore:#007F00,back:#effffe,face:%(helv)s,size:%(size)d" % faces,
+    #wx.stc.STC_HPHP_HSTRING_VARIABLE:
+    #    "fore:#00007F,back:#efefff,face:%(helv)s,size:%(size)d,italics" % faces,
+    #wx.stc.STC_HPHP_OPERATOR:
+    #    "fore:#660000,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
 
     wx.stc.STC_HJ_START:
         "fore:#000033,back:#ffefef,face:%(helv)s,size:%(size)d,eolfilled" % faces,
@@ -163,6 +164,6 @@ def html_styles(faces):
         "fore:#660033,back:#ffcfcf,face:%(helv)s,size:%(size)d" % faces,
 }
 
-def style_control(ctrl, faces):
-    for key, value in html_styles(faces).iteritems():
-        ctrl.StyleSetSpec(key, value)
+def style_control(ctrl, faces, offset=0):
+    for key, value in styles(faces).iteritems():
+        ctrl.StyleSetSpec(key+offset, value)

@@ -28,7 +28,7 @@ else:
               'size2': 9,
          }
 
-class PythonSTC(stc.StyledTextCtrl):
+class STC(stc.StyledTextCtrl):
 
     fold_symbols = 2
     MARK_BP = 1
@@ -49,7 +49,7 @@ class PythonSTC(stc.StyledTextCtrl):
         self.SetMargins(0,0)
 
         self.SetViewWhiteSpace(False)
-        #self.SetBufferedDraw(False)
+        self.SetBufferedDraw(True)
         #self.SetViewEOL(True)
         #self.SetEOLMode(stc.STC_EOL_CRLF)
         self.SetUseAntiAliasing(True)
@@ -101,7 +101,6 @@ class PythonSTC(stc.StyledTextCtrl):
 
         self._dirty = False
 
-    def style_it(self):
         # Global default styles for all languages
         self.StyleSetSpec(stc.STC_STYLE_DEFAULT,     "face:%(helv)s,size:%(size)d" % faces)
         self.StyleClearAll()  # Reset all to be like the default
@@ -112,37 +111,6 @@ class PythonSTC(stc.StyledTextCtrl):
         self.StyleSetSpec(stc.STC_STYLE_CONTROLCHAR, "face:%(other)s" % faces)
         self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT,  "fore:#000000,back:#cdedff,bold")
         self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,    "fore:#000000,back:#FF0000,bold")
-
-    def python_styles(self):
-        # Python styles
-        # Default 
-        self.StyleSetSpec(stc.STC_P_DEFAULT, "fore:#000000,face:%(helv)s,size:%(size)d" % faces)
-        # Comments
-        self.StyleSetSpec(stc.STC_P_COMMENTLINE, "fore:#007F00,face:%(other)s,size:%(size)d" % faces)
-        # Number
-        self.StyleSetSpec(stc.STC_P_NUMBER, "fore:#007F7F,size:%(size)d" % faces)
-        # String
-        self.StyleSetSpec(stc.STC_P_STRING, "fore:#7F007F,face:%(helv)s,size:%(size)d" % faces)
-        # Single quoted string
-        self.StyleSetSpec(stc.STC_P_CHARACTER, "fore:#7F007F,face:%(helv)s,size:%(size)d" % faces)
-        # Keyword
-        self.StyleSetSpec(stc.STC_P_WORD, "fore:#00007F,bold,size:%(size)d" % faces)
-        # Triple quotes
-        self.StyleSetSpec(stc.STC_P_TRIPLE, "fore:#7F0000,size:%(size)d" % faces)
-        # Triple double quotes
-        self.StyleSetSpec(stc.STC_P_TRIPLEDOUBLE, "fore:#7F0000,size:%(size)d" % faces)
-        # Class name definition
-        self.StyleSetSpec(stc.STC_P_CLASSNAME, "fore:#0000FF,bold,underline,size:%(size)d" % faces)
-        # Function or method name definition
-        self.StyleSetSpec(stc.STC_P_DEFNAME, "fore:#007F7F,bold,size:%(size)d" % faces)
-        # Operators
-        self.StyleSetSpec(stc.STC_P_OPERATOR, "bold,size:%(size)d" % faces)
-        # Identifiers
-        self.StyleSetSpec(stc.STC_P_IDENTIFIER, "fore:#000000,face:%(helv)s,size:%(size)d" % faces)
-        # Comment-blocks
-        self.StyleSetSpec(stc.STC_P_COMMENTBLOCK, "fore:#7F7F7F,size:%(size)d" % faces)
-        # End of line where string is not closed
-        self.StyleSetSpec(stc.STC_P_STRINGEOL, "fore:#000000,face:%(mono)s,back:#E0C0E0,eol,size:%(size)d" % faces)
 
     def OnSavePointLeft(self, evt):
         self._dirty = True
@@ -291,8 +259,6 @@ class PythonSTC(stc.StyledTextCtrl):
 
             lineNum = lineNum + 1
 
-
-
     def Expand(self, line, doExpand, force=False, visLevels=0, level=-1):
         lastChild = self.GetLastChild(line, level)
         line = line + 1
@@ -329,66 +295,15 @@ class PythonSTC(stc.StyledTextCtrl):
 
         return line
 
-class Editor(PythonSTC):
-    def trace_line_clear(self):
-        self.MarkerDeleteAll(PythonSTC.MARK_DEBUG)
-        self.MarkerDeleteAll(PythonSTC.MARK_LINE_DEBUG)
-        self.Refresh()
+class Python(STC):
+    def setup(self):
+        self.SetLexer(stc.STC_LEX_PYTHON)
+        self.SetProperty("fold", "1")
+        self.SetProperty("tab.timmy.whinge.level", "1")
+        from styles.py import style_control, keywords
+        style_control(self, faces)
 
-    def trace_line(self, lineno):
-        #self.ctrl.feed_child('^[:%s\nzo' % lineno)
-        #self.ctrl.feed_child("^[:nnoremap <silent> <Leader>l ml:execute 'match Search /\%'.line('.').'l/'\n\l\n")
-        lineno = int(lineno)
-        lineno -=1
-        self.MarkerAdd(lineno, PythonSTC.MARK_DEBUG)
-        self.MarkerAdd(lineno, PythonSTC.MARK_LINE_DEBUG)
-        self.GotoLine(lineno)
-        self.Refresh(lineno)
-
-    def set_break(self, lineno, filename):
-        lineno = int(lineno)
-        lineno -=1
-        self.MarkerAdd(lineno, PythonSTC.MARK_BP)
-        self.MarkerAdd(lineno, PythonSTC.MARK_LINE_BP)
-        self.Refresh()
-        #wx.CallAfter(self.MarkerAdd, 10, MARK_LINE_BP)
-        #wx.CallAfter(self.MarkerAdd, 1, MARK_DEBUG)
-        #wx.CallAfter(self.MarkerAdd, 1, MARK_LINE_DEBUG)
-    def clear_break(self, lineno):
-        lineno = int(lineno)
-        lineno -=1
-        self.MarkerDelete(lineno, PythonSTC.MARK_BP)
-        self.MarkerDelete(lineno, PythonSTC.MARK_LINE_BP)
-        self.Refresh()
-
-    def run_command(self, *args):
-        pass
-
-    def quit(self):
-        if self._dirty:
-            return
-        notebook = self.GetParent()
-        page_n = notebook.get_selection_by_filename(self.filename)
-        notebook.DeletePage(page_n)
-
-    def openfile(self, filename, lineno=0):
-        if filename.endswith('.py'):
-            self.SetLexer(stc.STC_LEX_PYTHON)
-            self.SetProperty("fold", "1")
-            self.SetProperty("tab.timmy.whinge.level", "1")
-            self.SetKeyWords(0, " ".join(keyword.kwlist))
-            self.style_it()
-            self.python_styles()
-        elif filename.endswith('.html'):
-            import html_styles
-            self.SetLexer(stc.STC_LEX_HTML)
-            #self.SetProperty("asp.default.language", "1")
-            self.SetProperty("fold", "0")
-            self.style_it()
-            html_styles.style_control(self, faces)
-
-        if lineno > 0:
-            self.goto_line(lineno)
+        self.SetKeyWords(0, keywords())
 
         self.SetIndent(4)               # Proscribed indent size for wx
         self.SetIndentationGuides(True) # Show indent guides
@@ -396,6 +311,171 @@ class Editor(PythonSTC):
         self.SetTabIndents(True)        # Tab key indents
         self.SetTabWidth(4)             # Proscribed tab size for wx
         self.SetUseTabs(False)          # Use spaces rather than tabs, or
+                                        # TabTimmy will complain!    
+
+class HTML(STC):
+    OFFSET_CURLY = 80 # ASP VBScript styles will be replaced with TeX styles
+    TRIPLE_CURLY = chr(wx.stc.STC_P_TRIPLE + OFFSET_CURLY) * 4
+
+    STATE_DEFAULT = 0
+    STATE_CURLY = 1
+    STATE_DELIM = 100
+
+    STATE_TRANSITIONS = {
+        STATE_DEFAULT: [("{{", STATE_CURLY, True)],
+        STATE_CURLY: [("}}", STATE_DEFAULT, True)],
+    }
+
+    def setup(self):
+        self.SetLexer(stc.STC_LEX_CONTAINER)
+        self.SetStyleBits(8)
+        self.Bind(wx.stc.EVT_STC_STYLENEEDED, self.OnStyling)
+
+        #self.SetProperty("asp.default.language", "1")
+        #self.SetProperty("fold", "0")
+        from styles.html import style_control, keywords
+        from styles import py
+
+        style_control(self, faces)
+        py.style_control(self, faces, self.OFFSET_CURLY)
+
+        # === Dummy controls as lexers ===
+        self.dummyHtml = wx.stc.StyledTextCtrl(self)
+        self.dummyHtml.SetLayoutCache(wx.stc.STC_CACHE_DOCUMENT)
+        self.dummyHtml.Show(False)
+        self.dummyHtml.SetLexer(wx.stc.STC_LEX_HTML)
+        self.dummyHtml.SetStyleBits(8)
+        self.dummyHtml.SetKeyWords(0, keywords())
+
+        self.dummyW2Pt = wx.stc.StyledTextCtrl(self)
+        self.dummyW2Pt.SetLayoutCache(wx.stc.STC_CACHE_DOCUMENT)
+        self.dummyW2Pt.Show(False)
+        #self.dummyW2Pt.SetLexer(wx.stc.STC_LEX_LATEX)
+        self.dummyW2Pt.SetStyleBits(8)
+        self.dummyW2Pt.SetLexer(wx.stc.STC_LEX_PYTHON)
+        self.dummyW2Pt.SetKeyWords(0, py.keywords())
+
+    def _parse_html(self, fragment):
+        self.dummyHtml.SetText(fragment.decode("utf-8"))
+        fl = len(fragment)
+        self.dummyHtml.Colourise(0, fl)
+        multiplexed = self.dummyHtml.GetStyledText(0, fl)
+        return multiplexed
+
+    def _parse_w2pt(self, fragment, offset):
+        self.dummyW2Pt.SetText(fragment.decode("utf-8"))
+        fl = len(fragment)
+        self.dummyW2Pt.Colourise(0, fl)
+        multiplexed = self.dummyW2Pt.GetStyledText(0, fl)
+        multiplexed = list(multiplexed)
+        for i in range(1, len(multiplexed), 2):
+            multiplexed[i] = chr(ord(multiplexed[i]) + offset)
+        return "".join(multiplexed)
+
+    def OnStyling(self, evt):
+        u"""Called when the control needs styling."""
+        text = self.GetText().encode("utf-8")
+
+        # === split text into chunks ===
+        splitpoints = [0]
+        states = [self.STATE_DEFAULT]
+        state = self.STATE_DEFAULT
+        for i in range(0, len(text)):
+            transitions = self.STATE_TRANSITIONS[state]
+            for delim, newstate, bsplit in transitions:
+                nd = len(delim)
+                if i >= nd - 1 and text[i+1-nd:i+1] == delim:
+                    if bsplit:
+                        splitpoints.append(i-1)
+                        splitpoints.append(i+1)
+                        states.append(self.STATE_DELIM + state + newstate)
+                        states.append(newstate)
+                    state = newstate
+        if splitpoints[-1] != len(text):
+            splitpoints.append(len(text))
+        parts = [text[splitpoints[i]:splitpoints[i+1]]
+                 for i in range(len(splitpoints) - 1)]
+
+        # === lex and style each part ===
+        parsed = ""
+        for i in range(len(parts)):
+            type = states[i]
+            fragment = parts[i]
+            if type == self.STATE_DEFAULT:
+                parsed += self._parse_html(fragment)
+            elif type == self.STATE_CURLY:
+                parsed += self._parse_w2pt(fragment, self.OFFSET_CURLY)
+            elif type == self.STATE_CURLY + self.STATE_DELIM:
+                parsed += self.TRIPLE_CURLY
+
+        # === style the complete control ===
+        self.StartStyling(0, 255)
+        parsed = "".join([parsed[i] for i in range(1, len(parsed), 2)])
+        self.SetStyleBytes(len(parsed), parsed)
+
+
+class Editor(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent)
+        self.parent = parent
+        self._sizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self._sizer)
+
+    def trace_line_clear(self):
+        self._ctrl.MarkerDeleteAll(STC.MARK_DEBUG)
+        self._ctrl.MarkerDeleteAll(STC.MARK_LINE_DEBUG)
+        self._ctrl.Refresh()
+
+    def trace_line(self, lineno):
+        lineno = int(lineno)
+        lineno -=1
+        self._ctrl.MarkerAdd(lineno, STC.MARK_DEBUG)
+        self._ctrl.MarkerAdd(lineno, STC.MARK_LINE_DEBUG)
+        self._ctrl.GotoLine(lineno)
+        self._ctrl.Refresh(lineno)
+
+    def set_break(self, lineno, filename):
+        lineno = int(lineno)
+        lineno -=1
+        self._ctrl.MarkerAdd(lineno, STC.MARK_BP)
+        self._ctrl.MarkerAdd(lineno, STC.MARK_LINE_BP)
+        self._ctrl.Refresh()
+
+    def clear_break(self, lineno):
+        lineno = int(lineno)
+        lineno -=1
+        self._ctrl.MarkerDelete(lineno, STC.MARK_BP)
+        self._ctrl.MarkerDelete(lineno, STC.MARK_LINE_BP)
+        self._ctrl.Refresh()
+
+    def run_command(self, *args):
+        pass
+
+    def quit(self):
+        if self._ctrl._dirty:
+            return
+        notebook = self._ctrl.GetParent()
+        page_n = notebook.get_selection_by_filename(self._ctrl.filename)
+        notebook.DeletePage(page_n)
+
+    def openfile(self, filename, lineno=0):
+        if filename.endswith('.py'):
+            self._ctrl = Python(self)
+
+        elif filename.endswith('.html'):
+            self._ctrl = HTML(self)
+        self._sizer.Add(self._ctrl, 1, wx.EXPAND, 0)
+        self._ctrl.setup()
+
+        if lineno > 0:
+            self.goto_line(lineno)
+
+        self._ctrl.SetIndent(4)               # Proscribed indent size for wx
+        self._ctrl.SetIndentationGuides(True) # Show indent guides
+        self._ctrl.SetBackSpaceUnIndents(True)# Backspace unindents rather than delete 1 space
+        self._ctrl.SetTabIndents(True)        # Tab key indents
+        self._ctrl.SetTabWidth(4)             # Proscribed tab size for wx
+        self._ctrl.SetUseTabs(False)          # Use spaces rather than tabs, or
                                             # TabTimmy will complain!    
         f = open(filename)
         t = f.read()
@@ -406,35 +486,39 @@ class Editor(PythonSTC):
         except UnicodeDecodeError:
             t = t.decode('latin-1')
 
-        self.SetText(t)
+        self._ctrl.SetText(t)
+        self._ctrl.EmptyUndoBuffer()
+        self._ctrl.SetSavePoint()
 
-        self.SetSavePoint()
         return 0
 
     def savefile(self, filename):
-        #print >>sys.stderr, self.GetText()
         f = open(filename, 'wt')
         try:
-            f.write(self.GetText())
+            f.write(self._ctrl.GetText().encode('utf-8'))
         finally:
             f.close()
-        self.SetSavePoint()
+        self._ctrl.SetSavePoint()
 
     def goto_line(self, lineno):
-        self.GotoLine(lineno)
+        self._ctrl.GotoLine(lineno)
+
 
 if __name__ == '__main__':
     app = wx.App()
     f = wx.Frame(None)
+    sizer = wx.BoxSizer(wx.VERTICAL)
     ed = Editor(f)
+    sizer.Add(ed, 1, wx.EXPAND, 0)
+    f.SetSizer(sizer)
 
     ed.openfile(sys.argv[1])
-    ed.EmptyUndoBuffer()
-    ed.Colourise(0, -1)
+    #ed._ctrl.EmptyUndoBuffer()
+    #ed._ctrl.Colourise(0, -1)
 
     # line numbers in the margin
 
     f.Show()
-    ed.set_break(1, 'teste')
-    f.Refresh()
+    #ed.set_break(1, 'teste')
+    #f.Refresh()
     app.MainLoop()
