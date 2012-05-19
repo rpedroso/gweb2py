@@ -44,50 +44,52 @@ def keywords():
 def styles(faces):
     # Python styles
     return {
-        stc.STC_STYLE_DEFAULT: "back:#000000,fore:#999999",
-
-        # Default
+        ### Default
         stc.STC_P_DEFAULT:
         "back:#000000,fore:#999999,face:%(helv)s,size:%(size)d" % faces,
         # Comments
         stc.STC_P_COMMENTLINE:
-        "back:#000000,fore:#007F00,face:%(other)s,size:%(size)d" % faces,
+        "back:#000000,fore:#7F7F7F,face:%(other)s,size:%(size)d" % faces,
+        # Comment-blocks
+        stc.STC_P_COMMENTBLOCK:
+        "back:#000000,fore:#7F7F7F,face:%(other)s,size:%(size)d" % faces,
         # Number
         stc.STC_P_NUMBER:
-        "back:#000000,fore:#007F7F,size:%(size)d" % faces,
-        # String
+        "back:#000000,fore:#44dF5F,face:%(helv)s,size:%(size)d" % faces,
+        # String ("string")
         stc.STC_P_STRING:
         "back:#000000,fore:#7F007F,face:%(helv)s,size:%(size)d" % faces,
-        # Single quoted string
+        # Single quoted string ('a')
         stc.STC_P_CHARACTER:
         "back:#000000,fore:#7F007F,face:%(helv)s,size:%(size)d" % faces,
-        # Keyword
+        # Keyword (if, while, ...)
         stc.STC_P_WORD:
-        "back:#000000,fore:#00007F,bold,size:%(size)d" % faces,
-        # Triple quotes
+        "back:#000000,fore:#2040fF,face:%(helv)s,size:%(size)d" % faces,
+        # Triple quotes (''' triple quotes ''')
         stc.STC_P_TRIPLE:
-        "back:#000000,fore:#7F0000,size:%(size)d" % faces,
+        "back:#000000,fore:#7F0000,face:%(helv)s,size:%(size)d" % faces,
         # Triple double quotes
         stc.STC_P_TRIPLEDOUBLE:
-        "back:#000000,fore:#7F0000,size:%(size)d" % faces,
+        "back:#000000,fore:#7F0000,face:%(helv)s,size:%(size)d" % faces,
         # Class name definition
         stc.STC_P_CLASSNAME:
-        "back:#000000,fore:#0000FF,bold,underline,size:%(size)d" % faces,
+        "back:#000000,fore:#0000FF,face:%(helv)s,size:%(size)d,bold,underline" % faces,
         # Function or method name definition
         stc.STC_P_DEFNAME:
-        "back:#000000,fore:#007F7F,bold,size:%(size)d" % faces,
+        "back:#000000,fore:#007F7F,face:%(helv)s,size:%(size)d,bold" % faces,
         # Operators
         stc.STC_P_OPERATOR:
-        "back:#000000,fore=999999,bold,size:%(size)d" % faces,
+        "back:#000000,fore:#999999,face:%(helv)s,size:%(size)d,bold" % faces,
         # Identifiers
         stc.STC_P_IDENTIFIER:
         "back:#000000,fore:#999999,face:%(helv)s,size:%(size)d" % faces,
-        # Comment-blocks
-        stc.STC_P_COMMENTBLOCK:
-        "back:#000000,fore:#7F7F7F,size:%(size)d" % faces,
         # End of line where string is not closed
         stc.STC_P_STRINGEOL:
-        "back:#000000,fore:#999999,face:%(mono)s,eol,size:%(size)d" % faces,
+        "back:#000000,fore:#999999,face:%(helv)s,size:%(size)d,eol" % faces,
+        stc.STC_P_DECORATOR:
+        "back:#000000,fore:#00007F,face:%(helv)s,size:%(size)d,bold" % faces,
+        stc.STC_P_WORD2:
+        "back:#000000,fore:#00007F,face:%(helv)s,size:%(size)d,bold" % faces,
            }
 
 
@@ -95,5 +97,4 @@ def style_control(ctrl, faces, offset=0):
     set_style = ctrl.StyleSetSpec
     for key, value in styles(faces).iteritems():
         set_style(key + offset, value)
-    ctrl.StyleSetSpec(0, "back:#000000,fore:#999999")
 

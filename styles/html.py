@@ -1,24 +1,5 @@
 # -*- coding: utf-8 -*-
-
-# Base on:
-#
-# #
-# # Jan Thor
-# # 2011-10-27T21:30:37Z      (UTC,
-# # 2011-10-27T23:30:37+02:00 (Mitteleuropäische Sommerzeit,
-# #
-# 
-# u"""
-# TODO:
-# """
-# 
-# __author__ = u"Jan Thor"
-# __date__ = u"2011-10-27"
-# __version__ = u"0.0.1"
-# __credits__ = u"""http://www.janthor.com"""
-# __docformat__ = u"restructuredtext de"
-
-import wx.stc
+import wx.stc as stc
 
 def keywords():
     return ("a abbr acronym address applet area b base basefont bdo big"
@@ -49,100 +30,98 @@ def keywords():
 
 def styles(faces):
     return {
-    wx.stc.STC_STYLE_DEFAULT: "back:#000000,fore:#999999",
+    stc.STC_H_DEFAULT:
+     "fore:#999999,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_TAG:
+     "fore:#336699,back:#000000,face:%(helv)s,size:%(size)d,bold" % faces,
+    stc.STC_H_TAGUNKNOWN:
+     "fore:#ff0000,back:#000000,face:%(helv)s,size:%(size)d,bold" % faces,
+    stc.STC_H_ATTRIBUTE:
+     "fore:#0040c0,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_ATTRIBUTEUNKNOWN:
+     "fore:#ff0000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_NUMBER:
+     "fore:#cc0000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_DOUBLESTRING:
+     "fore:#7f00bf,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_SINGLESTRING:
+     "fore:#7f00bf,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_OTHER:
+     "fore:#800080,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_COMMENT:
+     "fore:#007f00,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_ENTITY:
+     "fore:#336600,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_TAGEND:
+     "fore:#000080,back:#000000,face:%(helv)s,size:%(size)d,bold" % faces,
+    stc.STC_H_XMLSTART:
+     "fore:#0000ff,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_XMLEND:
+     "fore:#0000ff,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_SCRIPT:
+     "fore:#000080,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_ASP:
+     "fore:#000000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_ASPAT:
+     "fore:#000000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_CDATA:
+     "fore:#992222,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_QUESTION:
+     "fore:#0000ff,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_VALUE:
+     "fore:#ff00ff,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_XCCOMMENT:
+     "fore:#007000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
 
-    wx.stc.STC_H_DEFAULT:
-        "fore:#000000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_TAG:
-        "fore:#336699,back:#000000,face:%(helv)s,size:%(size)d,bold" % faces,
-    wx.stc.STC_H_TAGUNKNOWN:
-        "fore:#ff0000,back:#000000,face:%(helv)s,size:%(size)d,bold" % faces,
-    wx.stc.STC_H_ATTRIBUTE:
-        "fore:#0040c0,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_ATTRIBUTEUNKNOWN:
-        "fore:#ff0000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_NUMBER:
-        "fore:#cc0000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_DOUBLESTRING:
-        "fore:#7f00bf,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_SINGLESTRING:
-        "fore:#7f00bf,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_OTHER:
-        "fore:#800080,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_COMMENT:
-        "fore:#007f00,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_ENTITY:
-        "fore:#336600,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_TAGEND:
-        "fore:#000080,back:#000000,face:%(helv)s,size:%(size)d,bold" % faces,
-    wx.stc.STC_H_XMLSTART:
-        "fore:#0000ff,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_XMLEND:
-        "fore:#0000ff,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_SCRIPT:
-        "fore:#000080,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    #wx.stc.STC_H_ASP:
-    #    "fore:#000000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    #wx.stc.STC_H_ASPAT:
-    #    "fore:#000000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_CDATA:
-        "fore:#992222,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_QUESTION:
-        "fore:#0000ff,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_VALUE:
-        "fore:#ff00ff,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_XCCOMMENT:
-        "fore:#007000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_SGML_DEFAULT:
+     "fore:#000080,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_SGML_COMMAND:
+     "fore:#000080,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_SGML_1ST_PARAM:
+     "fore:#006600,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_SGML_DOUBLESTRING:
+     "fore:#800000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_SGML_SIMPLESTRING:
+     "fore:#993300,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_SGML_ERROR:
+     "fore:#800000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_SGML_SPECIAL:
+     "fore:#3366ff,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_SGML_ENTITY:
+     "fore:#333333,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_SGML_COMMENT:
+     "fore:#808000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_SGML_1ST_PARAM_COMMENT:
+     "fore:#808000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_H_SGML_BLOCK_DEFAULT:
+     "fore:#000066,back:#000000,face:%(helv)s,size:%(size)d" % faces,
 
-    wx.stc.STC_H_SGML_DEFAULT:
-        "fore:#000080,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_SGML_COMMAND:
-        "fore:#000080,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_SGML_1ST_PARAM:
-        "fore:#006600,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_SGML_DOUBLESTRING:
-        "fore:#800000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_SGML_SIMPLESTRING:
-        "fore:#993300,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_SGML_ERROR:
-        "fore:#800000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_SGML_SPECIAL:
-        "fore:#3366ff,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_SGML_ENTITY:
-        "fore:#333333,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_SGML_COMMENT:
-        "fore:#808000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_SGML_1ST_PARAM_COMMENT:
-        "fore:#808000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_SGML_BLOCK_DEFAULT:
-        "fore:#000066,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-
-    wx.stc.STC_HJ_START:
-        "fore:#000033,back:#000000,face:%(helv)s,size:%(size)d,eolfilled" % faces,
-    wx.stc.STC_HJ_DEFAULT:
-        "fore:#7F7F00,back:#000000,face:%(helv)s,size:%(size)d,bold,eolfilled" % faces,
-    wx.stc.STC_HJ_COMMENT:
-        "fore:#3F7F3F,back:#000000,face:%(helv)s,size:%(size)d,italic" % faces,
-    wx.stc.STC_HJ_COMMENTLINE:
-        "fore:#007F00,back:#000000,face:%(helv)s,size:%(size)d,italic" % faces,
-    wx.stc.STC_HJ_COMMENTDOC:
-        "fore:#330000,back:#000000,face:%(helv)s,size:%(size)d,italic" % faces,
-    wx.stc.STC_HJ_NUMBER:
-        "fore:#CC9900,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_HJ_WORD:
-        "fore:#999999,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_HJ_KEYWORD:
-        "fore:#00007f,back:#000000,face:%(helv)s,size:%(size)d,bold" % faces,
-    wx.stc.STC_HJ_DOUBLESTRING:
-        "fore:#bF00bF,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_HJ_SINGLESTRING:
-        "fore:#009F00,back:#000000,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_HJ_SYMBOLS:
-        "fore:#660000,back:#000000,face:%(helv)s,size:%(size)d,bold" % faces,
-    wx.stc.STC_HJ_STRINGEOL:
-        "fore:#BFBBB0,back:#000000,face:%(helv)s,size:%(size)d,eolfilled" % faces,
-    wx.stc.STC_HJ_REGEX:
-        "fore:#660033,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_HJ_START:
+     "fore:#000033,back:#000000,face:%(helv)s,size:%(size)d,eolfilled" % faces,
+    stc.STC_HJ_DEFAULT:
+     "fore:#7F7F00,back:#000000,face:%(helv)s,size:%(size)d,bold,eolfilled" % faces,
+    stc.STC_HJ_COMMENT:
+     "fore:#3F7F3F,back:#000000,face:%(helv)s,size:%(size)d,italic" % faces,
+    stc.STC_HJ_COMMENTLINE:
+     "fore:#007F00,back:#000000,face:%(helv)s,size:%(size)d,italic" % faces,
+    stc.STC_HJ_COMMENTDOC:
+     "fore:#330000,back:#000000,face:%(helv)s,size:%(size)d,italic" % faces,
+    stc.STC_HJ_NUMBER:
+     "fore:#CC9900,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_HJ_WORD:
+     "fore:#999999,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_HJ_KEYWORD:
+     "fore:#00007f,back:#000000,face:%(helv)s,size:%(size)d,bold" % faces,
+    stc.STC_HJ_DOUBLESTRING:
+     "fore:#bF00bF,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_HJ_SINGLESTRING:
+     "fore:#009F00,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    stc.STC_HJ_SYMBOLS:
+     "fore:#660000,back:#000000,face:%(helv)s,size:%(size)d,bold" % faces,
+    stc.STC_HJ_STRINGEOL:
+     "fore:#BFBBB0,back:#000000,face:%(helv)s,size:%(size)d,eolfilled" % faces,
+    stc.STC_HJ_REGEX:
+     "fore:#660033,back:#000000,face:%(helv)s,size:%(size)d" % faces,
 
     #wx.stc.STC_CSS_ATTRIBUTE:
     #    "fore:#0040c0,back:#000000,face:%(helv)s,size:%(size)d" % faces,
@@ -184,4 +163,3 @@ def style_control(ctrl, faces, offset=0):
     set_style = ctrl.StyleSetSpec
     for key, value in styles(faces).iteritems():
         set_style(key + offset, value)
-    ctrl.StyleSetSpec(0, "back:#000000,fore:#999999")

@@ -52,7 +52,7 @@ class STC(stc.StyledTextCtrl):
         self.SetViewWhiteSpace(False)
         self.SetBufferedDraw(True)
         #self.SetViewEOL(True)
-        #self.SetEOLMode(stc.STC_EOL_CRLF)
+        self.SetEOLMode(stc.STC_EOL_CR)
         self.SetUseAntiAliasing(True)
 
         #self.SetEdgeMode(stc.STC_EDGE_BACKGROUND)
@@ -103,15 +103,20 @@ class STC(stc.StyledTextCtrl):
         self._dirty = False
 
         # Global default styles for all languages
-        self.StyleSetSpec(stc.STC_STYLE_DEFAULT,     "face:%(helv)s,size:%(size)d" % faces)
+        self.StyleSetSpec(stc.STC_STYLE_DEFAULT,
+                            "back:#000000,fore:#999999,"
+                            "face:%(helv)s,size:%(size)d" % faces)
         self.StyleClearAll()  # Reset all to be like the default
 
-        # Global default styles for all languages
-        self.StyleSetSpec(stc.STC_STYLE_DEFAULT,     "face:%(helv)s,size:%(size)d" % faces)
-        self.StyleSetSpec(stc.STC_STYLE_LINENUMBER,  "back:#C0C0C0,face:%(helv)s,size:%(size2)d" % faces)
-        self.StyleSetSpec(stc.STC_STYLE_CONTROLCHAR, "face:%(other)s" % faces)
-        self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT,  "fore:#000000,back:#cdedff,bold")
-        self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,    "fore:#000000,back:#FF0000,bold")
+        ## Global default styles for all languages
+        self.StyleSetSpec(stc.STC_STYLE_LINENUMBER,
+                "back:#C0C0C0,fore:#000000,face:%(helv)s,size:%(size2)d" % faces)
+        self.StyleSetSpec(stc.STC_STYLE_CONTROLCHAR,
+                "back:#000000,fore:#cdedff,face:%(other)s" % faces)
+        self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT,
+                "back:#000000,fore:#cdedff,face:%(other)s,bold")
+        self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,
+                "back:#000000,fore:#FF0000,face:%(other)s,bold")
 
     def OnSavePointLeft(self, evt):
         self._dirty = True
@@ -296,6 +301,16 @@ class STC(stc.StyledTextCtrl):
 
         return line
 
+class Simple(STC):
+    def setup(self):
+        self.SetIndent(4)               # Proscribed indent size for wx
+        self.SetIndentationGuides(False) # Show indent guides
+        self.SetBackSpaceUnIndents(True)# Backspace unindents rather than delete 1 space
+        self.SetTabIndents(True)        # Tab key indents
+        self.SetTabWidth(4)             # Proscribed tab size for wx
+        self.SetUseTabs(False)          # Use spaces rather than tabs, or
+                                        # TabTimmy will complain!    
+
 class Python(STC):
     def setup(self):
         self.SetLexer(stc.STC_LEX_PYTHON)
@@ -307,7 +322,7 @@ class Python(STC):
         self.SetKeyWords(0, keywords())
 
         self.SetIndent(4)               # Proscribed indent size for wx
-        self.SetIndentationGuides(True) # Show indent guides
+        self.SetIndentationGuides(False) # Show indent guides
         self.SetBackSpaceUnIndents(True)# Backspace unindents rather than delete 1 space
         self.SetTabIndents(True)        # Tab key indents
         self.SetTabWidth(4)             # Proscribed tab size for wx
@@ -329,7 +344,7 @@ class HTML(STC):
 
     def setup(self):
         self.SetLexer(stc.STC_LEX_CONTAINER)
-        self.SetStyleBits(8)
+        self.SetStyleBits(7)
         self.Bind(wx.stc.EVT_STC_STYLENEEDED, self.OnStyling)
 
         #self.SetProperty("asp.default.language", "1")
@@ -345,14 +360,11 @@ class HTML(STC):
         self.dummyHtml.SetLayoutCache(wx.stc.STC_CACHE_DOCUMENT)
         self.dummyHtml.Show(False)
         self.dummyHtml.SetLexer(wx.stc.STC_LEX_HTML)
-        self.dummyHtml.SetStyleBits(8)
         self.dummyHtml.SetKeyWords(0, keywords())
 
         self.dummyW2Pt = wx.stc.StyledTextCtrl(self)
         self.dummyW2Pt.SetLayoutCache(wx.stc.STC_CACHE_DOCUMENT)
         self.dummyW2Pt.Show(False)
-        #self.dummyW2Pt.SetLexer(wx.stc.STC_LEX_LATEX)
-        self.dummyW2Pt.SetStyleBits(8)
         self.dummyW2Pt.SetLexer(wx.stc.STC_LEX_PYTHON)
         self.dummyW2Pt.SetKeyWords(0, py.keywords())
 
@@ -471,8 +483,16 @@ class Editor(wx.Panel):
         if extension == '.py':
             self._ctrl = Python(self)
 
-        elif extension in ('.html', '.css', '.js'):
+        elif extension in ('.html', '.js'):
             self._ctrl = HTML(self)
+
+        elif extension in ('.css'):
+            self._ctrl = Simple(self)
+            self._ctrl.SetLexer(stc.STC_LEX_CSS)
+            self._ctrl.SetProperty("fold", "1")
+            self._ctrl.SetProperty("tab.timmy.whinge.level", "1")
+            from styles.css import style_control, keywords
+            style_control(self._ctrl, faces)
 
         self._sizer.Add(self._ctrl, 1, wx.EXPAND, 0)
         self._ctrl.setup()
@@ -481,7 +501,7 @@ class Editor(wx.Panel):
             self.goto_line(lineno)
 
         self._ctrl.SetIndent(4)               # Proscribed indent size for wx
-        self._ctrl.SetIndentationGuides(True) # Show indent guides
+        self._ctrl.SetIndentationGuides(False) # Show indent guides
         self._ctrl.SetBackSpaceUnIndents(True)# Backspace unindents rather than delete 1 space
         self._ctrl.SetTabIndents(True)        # Tab key indents
         self._ctrl.SetTabWidth(4)             # Proscribed tab size for wx
