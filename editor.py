@@ -494,6 +494,9 @@ class Editor(wx.Panel):
             from styles.css import style_control, keywords
             style_control(self._ctrl, faces)
 
+        else:
+            self._ctrl = Simple(self)
+
         self._sizer.Add(self._ctrl, 1, wx.EXPAND, 0)
         self._ctrl.setup()
 
