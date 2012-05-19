@@ -75,8 +75,8 @@ class Main(toplevel.Frame):
 
         self.Show()
 
-        if w2p_path:
-            self.open_web2py(w2p_path)
+        #if w2p_path:
+        self.open_web2py(w2p_path)
 
     def toggle_menu_w2p(self):
         self.menu_w2p.Enable(self.menu_item_w2p_open.GetId(),
@@ -125,18 +125,19 @@ class Main(toplevel.Frame):
         self.server.process = None
         self.server = None
 
-    def on_can_close(self, evt):
+    def server_stop(self):
         if self.server and self.server.process:
             self.server.stop()
-        #self.w2p_path = None
-        self.timer.Stop()
+        if self.timer:
+            self.timer.Stop()
+
+    def on_can_close(self, evt):
+        self.server_stop()
         self.panel.Destroy()
         self.panel = None
 
     def on_can_quit(self, evt):
-        if self.server and self.server.process:
-            self.server.stop()
-        self.timer.Stop()
+        self.server_stop()
         self.Destroy()
 
     def OnClose(self, evt):
