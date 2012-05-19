@@ -523,7 +523,9 @@ class Editor(wx.Panel):
 
         self._ctrl.SetText(t)
         self._ctrl.EmptyUndoBuffer()
-        wx.CallAfter(self._ctrl.SetSavePoint)
+	# FIXME: Ugly hack to mark the buffer as not dirty
+	# must be a better way
+        wx.FutureCall(250, self._ctrl.SetSavePoint)
 
         self.Layout()
 

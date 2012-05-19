@@ -824,7 +824,8 @@ class MainPanel(wx.Panel):
 
     def notebook_close_tab(self, idx):
         self.notebook.DeletePage(idx)
-        #self.Refresh()
+        if IS_MAC:
+            self.Refresh()
 
     def notebook_setfocus(self):
         self.notebook.SetFocus()
