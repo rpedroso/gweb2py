@@ -120,9 +120,11 @@ class STC(stc.StyledTextCtrl):
 
     def OnSavePointLeft(self, evt):
         self._dirty = True
+        evt.Skip()
 
     def OnSavePointReached(self, evt):
         self._dirty = False
+        evt.Skip()
 
     def OnKeyDown(self, event):
         if self.CallTipActive():

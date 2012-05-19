@@ -3,6 +3,7 @@
 import __builtin__
 
 import wx
+import wx.stc as stc
 import wx.lib.mixins.listctrl as listmix
 import wx.lib.flatnotebook as fnb
 import wx.lib.newevent
@@ -329,6 +330,22 @@ else:
         def __init__(self, *args, **kwargs):
             fnb.FlatNotebook.__init__(self, *args, **kwargs)
             #self.Bind(fnb.EVT_FLATNOTEBOOK_PAGE_CLOSING, self.on_closing)
+            self.Bind(stc.EVT_STC_SAVEPOINTLEFT, self.OnSavePointLeft)
+            self.Bind(stc.EVT_STC_SAVEPOINTREACHED, self.OnSavePointReached)
+
+        def OnSavePointLeft(self, event):
+            n = self.GetSelection()
+            text = self.GetPageText(n)
+            if text and text[0] != '*':
+                text = '*%s' % text
+                self.SetPageText(n, text)
+
+        def OnSavePointReached(self, event):
+            n = self.GetSelection()
+            text = self.GetPageText(n)
+
+            if text and text[0] == '*':
+                self.SetPageText(n, text[1:])
 
         #def on_closing(self, event):
         #    self.DeletePage(event.GetSelection())
