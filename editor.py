@@ -52,7 +52,7 @@ class STC(stc.StyledTextCtrl):
         self.SetViewWhiteSpace(False)
         self.SetBufferedDraw(True)
         #self.SetViewEOL(True)
-        self.SetEOLMode(stc.STC_EOL_CR)
+        self.SetEOLMode(stc.STC_EOL_LF)
         self.SetUseAntiAliasing(True)
 
         #self.SetEdgeMode(stc.STC_EDGE_BACKGROUND)
