@@ -21,19 +21,27 @@ class Frame(wx.Frame):
         menuBar = wx.MenuBar()
 
         menu = wx.Menu()
-        self.menu_item_w2p_open = menu.Append(wx.ID_ANY, "&Open", "")
-        self.menu_item_w2p_close = menu.Append(wx.ID_ANY, "&Close", "")
+        self.menu_item_w2p_open = menu.Append(wx.ID_ANY, "&Open",
+                "Open a web2py folder and start webserver")
+        self.menu_item_w2p_close = menu.Append(wx.ID_ANY, "&Close",
+                "Close all files and stop webserver")
         menu.AppendSeparator()
-        self.menu_item_w2p_quit = menu.Append(wx.ID_ANY, "&Quit", "")
+        self.menu_item_w2p_reload = menu.Append(wx.ID_ANY, "&Reload",
+                "Reload web server")
+        menu.AppendSeparator()
+        self.menu_item_w2p_quit = menu.Append(wx.ID_ANY, "&Quit",
+                "Quit everything")
         menuBar.Append(menu, "&Web2py")
         self.menu_w2p = menu
 
         self.Bind(wx.EVT_MENU, self.OnMenuW2pOpen, self.menu_item_w2p_open)
         self.Bind(wx.EVT_MENU, self.OnMenuW2pClose, self.menu_item_w2p_close)
+        self.Bind(wx.EVT_MENU, self.OnMenuW2pReload, self.menu_item_w2p_reload)
         self.Bind(wx.EVT_MENU, self.OnMenuW2pQuit, self.menu_item_w2p_quit)
 
         menu = wx.Menu()
-        self.menu_item_app_new = menu.Append(wx.ID_ANY, "&New", "")
+        self.menu_item_app_new = menu.Append(wx.ID_ANY, "&New",
+                "Create a new application")
         menuBar.Append(menu, "&Application")
         self.menu_app = menu
 

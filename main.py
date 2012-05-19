@@ -68,6 +68,8 @@ class Web2pyServer(object):
 class Main(toplevel.Frame):
 
     def __init__(self, w2p_path):
+        self._is_reloading = False
+
         toplevel.Frame.__init__(self, None, size=(800, 600))
         self.Bind(controls.EVT_SHELL, self.on_shell)
         self.Bind(panels.EVT_MP_CAN_CLOSE, self.on_can_close)
@@ -82,6 +84,8 @@ class Main(toplevel.Frame):
         self.menu_w2p.Enable(self.menu_item_w2p_open.GetId(),
                 not bool(self.panel))
         self.menu_w2p.Enable(self.menu_item_w2p_close.GetId(),
+                bool(self.panel))
+        self.menu_w2p.Enable(self.menu_item_w2p_reload.GetId(),
                 bool(self.panel))
 
     def toogle_menu_app(self):
@@ -125,19 +129,27 @@ class Main(toplevel.Frame):
         self.server.process = None
         self.server = None
 
+        if self._is_reloading:
+            path = self.panel.w2p_path
+            print "Starting server..."
+            self.server_start(path, ask_passwd=False)
+            self._is_reloading = False
+
     def server_stop(self):
         if self.server and self.server.process:
             self.server.stop()
-        if self.timer:
-            self.timer.Stop()
 
     def on_can_close(self, evt):
         self.server_stop()
+        if self.timer:
+            self.timer.Stop()
         self.panel.Destroy()
         self.panel = None
 
     def on_can_quit(self, evt):
         self.server_stop()
+        if self.timer:
+            self.timer.Stop()
         self.Destroy()
 
     def OnClose(self, evt):
@@ -146,15 +158,14 @@ class Main(toplevel.Frame):
         else:
             evt.Skip()
 
-    def open_web2py(self, w2p_path=None):
-        if not w2p_path:
-            w2p_path = toplevel.dialog_choose_web2py(self)
-            if not w2p_path:
-                return
-
+    def server_start(self, w2p_path=None, ask_passwd=True):
         w2p_path = os.path.normpath(w2p_path)
         self.server = Web2pyServer(self, APP_PATH, w2p_path)
-        p = toplevel.dialog_admin_password(self)
+
+        p = None
+        if ask_passwd:
+            p = toplevel.dialog_admin_password(self)
+
         try:
             self.server.start(p, PORT)
         except Exception, e:
@@ -165,9 +176,20 @@ class Main(toplevel.Frame):
                     'reason:\n%s\n\n'
                     'traceback:\n'
                     '%s' % (err.splitlines()[-1], err))
-            return
+            return False
 
         os.chdir(w2p_path)
+        return True
+
+    def open_web2py(self, w2p_path=None):
+        if not w2p_path:
+            w2p_path = toplevel.dialog_choose_web2py(self)
+            if not w2p_path:
+                return
+
+        if not self.server_start(w2p_path):
+            return
+
         self.panel = panels.MainPanel(self, w2p_path)
         self.SendSizeEvent()
         self.timer.Start(500)
@@ -206,6 +228,11 @@ class Main(toplevel.Frame):
     def OnMenuW2pClose(self, evt):
         if self.panel:
             self.close_web2py(for_quit=False)
+
+    def OnMenuW2pReload(self, evt):
+        print "Stopping server..."
+        self.server_stop()
+        self._is_reloading = True
 
     def OnMenuW2pQuit(self, evt):
         if self.panel:
