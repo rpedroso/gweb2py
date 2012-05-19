@@ -49,122 +49,139 @@ def keywords():
 
 def styles(faces):
     return {
+    wx.stc.STC_STYLE_DEFAULT: "back:#000000,fore:#999999",
+
     wx.stc.STC_H_DEFAULT:
-        "fore:#000000,back:#ffffff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#000000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_TAG:
-        "fore:#000000,back:#ffffff,face:%(helv)s,size:%(size)d,bold" % faces,
+        "fore:#336699,back:#000000,face:%(helv)s,size:%(size)d,bold" % faces,
     wx.stc.STC_H_TAGUNKNOWN:
-        "fore:#ff0000,back:#ffffff,face:%(helv)s,size:%(size)d,bold" % faces,
+        "fore:#ff0000,back:#000000,face:%(helv)s,size:%(size)d,bold" % faces,
     wx.stc.STC_H_ATTRIBUTE:
-        "fore:#0040c0,back:#ffffff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#0040c0,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_ATTRIBUTEUNKNOWN:
-        "fore:#ff0000,back:#ffffff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#ff0000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_NUMBER:
-        "fore:#cc0000,back:#ffffff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#cc0000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_DOUBLESTRING:
-        "fore:#7f00bf,back:#ffffff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#7f00bf,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_SINGLESTRING:
-        "fore:#7f00bf,back:#ffffff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#7f00bf,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_OTHER:
-        "fore:#800080,back:#ffffff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#800080,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_COMMENT:
-        "fore:#007f00,back:#eeffee,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#007f00,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_ENTITY:
-        "fore:#336600,back:#ffffff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#336600,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_TAGEND:
-        "fore:#000080,back:#ffffff,face:%(helv)s,size:%(size)d,bold" % faces,
+        "fore:#000080,back:#000000,face:%(helv)s,size:%(size)d,bold" % faces,
     wx.stc.STC_H_XMLSTART:
-        "fore:#0000ff,back:#ffffff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#0000ff,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_XMLEND:
-        "fore:#0000ff,back:#ffffff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#0000ff,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_SCRIPT:
-        "fore:#000080,back:#ffffff,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_ASP:
-        "fore:#000000,back:#ffff00,face:%(helv)s,size:%(size)d" % faces,
-    wx.stc.STC_H_ASPAT:
-        "fore:#000000,back:#ffdf00,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#000080,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    #wx.stc.STC_H_ASP:
+    #    "fore:#000000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    #wx.stc.STC_H_ASPAT:
+    #    "fore:#000000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_CDATA:
-        "fore:#000000,back:#ffdf00,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#992222,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_QUESTION:
-        "fore:#0000ff,back:#ffefbf,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#0000ff,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_VALUE:
-        "fore:#ff00ff,back:#ffefff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#ff00ff,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_XCCOMMENT:
-        "fore:#000000,back:#ffffd0,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#007000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
 
     wx.stc.STC_H_SGML_DEFAULT:
-        "fore:#000080,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#000080,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_SGML_COMMAND:
-        "fore:#000080,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#000080,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_SGML_1ST_PARAM:
-        "fore:#006600,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#006600,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_SGML_DOUBLESTRING:
-        "fore:#800000,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#800000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_SGML_SIMPLESTRING:
-        "fore:#993300,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#993300,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_SGML_ERROR:
-        "fore:#800000,back:#ff6666,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#800000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_SGML_SPECIAL:
-        "fore:#3366ff,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#3366ff,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_SGML_ENTITY:
-        "fore:#333333,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#333333,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_SGML_COMMENT:
-        "fore:#808000,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#808000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_SGML_1ST_PARAM_COMMENT:
-        "fore:#808000,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#808000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_H_SGML_BLOCK_DEFAULT:
-        "fore:#000066,back:#CCCCE0,face:%(helv)s,size:%(size)d" % faces,
-
-    #wx.stc.STC_HPHP_DEFAULT:
-    #    "fore:#000033,back:#efefff,face:%(helv)s,size:%(size)d,eolfilled" % faces,
-    #wx.stc.STC_HPHP_HSTRING:
-    #    "fore:#bF00bF,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
-    #wx.stc.STC_HPHP_SIMPLESTRING:
-    #    "fore:#009F00,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
-    #wx.stc.STC_HPHP_WORD:
-    #    "fore:#7F007F,back:#efefff,face:%(helv)s,size:%(size)d,bold" % faces,
-    #wx.stc.STC_HPHP_NUMBER:
-    #    "fore:#CC9900,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
-    #wx.stc.STC_HPHP_VARIABLE:
-    #    "fore:#00007F,back:#efefff,face:%(helv)s,size:%(size)d,italics" % faces,
-    #wx.stc.STC_HPHP_COMMENT:
-    #    "fore:#3F7F3F,back:#efffff,face:%(helv)s,size:%(size)d,italics" % faces,
-    #wx.stc.STC_HPHP_COMMENTLINE:
-    #    "fore:#007F00,back:#effffe,face:%(helv)s,size:%(size)d" % faces,
-    #wx.stc.STC_HPHP_HSTRING_VARIABLE:
-    #    "fore:#00007F,back:#efefff,face:%(helv)s,size:%(size)d,italics" % faces,
-    #wx.stc.STC_HPHP_OPERATOR:
-    #    "fore:#660000,back:#efefff,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#000066,back:#000000,face:%(helv)s,size:%(size)d" % faces,
 
     wx.stc.STC_HJ_START:
-        "fore:#000033,back:#ffefef,face:%(helv)s,size:%(size)d,eolfilled" % faces,
+        "fore:#000033,back:#000000,face:%(helv)s,size:%(size)d,eolfilled" % faces,
     wx.stc.STC_HJ_DEFAULT:
-        "fore:#7F7F00,back:#ffefef,face:%(helv)s,size:%(size)d,bold,eolfilled" % faces,
+        "fore:#7F7F00,back:#000000,face:%(helv)s,size:%(size)d,bold,eolfilled" % faces,
     wx.stc.STC_HJ_COMMENT:
-        "fore:#3F7F3F,back:#ffffef,face:%(helv)s,size:%(size)d,italic" % faces,
+        "fore:#3F7F3F,back:#000000,face:%(helv)s,size:%(size)d,italic" % faces,
     wx.stc.STC_HJ_COMMENTLINE:
-        "fore:#007F00,back:#effffe,face:%(helv)s,size:%(size)d,italic" % faces,
+        "fore:#007F00,back:#000000,face:%(helv)s,size:%(size)d,italic" % faces,
     wx.stc.STC_HJ_COMMENTDOC:
-        "fore:#330000,back:#ffdfdf,face:%(helv)s,size:%(size)d,italic" % faces,
+        "fore:#330000,back:#000000,face:%(helv)s,size:%(size)d,italic" % faces,
     wx.stc.STC_HJ_NUMBER:
-        "fore:#CC9900,back:#ffefef,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#CC9900,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_HJ_WORD:
-        "fore:#000000,back:#ffefef,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#999999,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_HJ_KEYWORD:
-        "fore:#00007f,back:#ffefef,face:%(helv)s,size:%(size)d,bold" % faces,
+        "fore:#00007f,back:#000000,face:%(helv)s,size:%(size)d,bold" % faces,
     wx.stc.STC_HJ_DOUBLESTRING:
-        "fore:#bF00bF,back:#ffefef,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#bF00bF,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_HJ_SINGLESTRING:
-        "fore:#009F00,back:#ffefef,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#009F00,back:#000000,face:%(helv)s,size:%(size)d" % faces,
     wx.stc.STC_HJ_SYMBOLS:
-        "fore:#660000,back:#ffefef,face:%(helv)s,size:%(size)d,bold" % faces,
+        "fore:#660000,back:#000000,face:%(helv)s,size:%(size)d,bold" % faces,
     wx.stc.STC_HJ_STRINGEOL:
-        "fore:#BFBBB0,back:#ffefef,face:%(helv)s,size:%(size)d,eolfilled" % faces,
+        "fore:#BFBBB0,back:#000000,face:%(helv)s,size:%(size)d,eolfilled" % faces,
     wx.stc.STC_HJ_REGEX:
-        "fore:#660033,back:#ffcfcf,face:%(helv)s,size:%(size)d" % faces,
+        "fore:#660033,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+
+    #wx.stc.STC_CSS_ATTRIBUTE:
+    #    "fore:#0040c0,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    #wx.stc.STC_CSS_CLASS:
+    #    "fore:#000080,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    #wx.stc.STC_CSS_COMMENT:
+    #    "fore:#007f00,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    #wx.stc.STC_CSS_DEFAULT:
+    #    "fore:#000000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    #wx.stc.STC_CSS_DIRECTIVE:
+    #    "fore:#000000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    #wx.stc.STC_CSS_DOUBLESTRING:
+    #    "fore:#7f00bf,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    #wx.stc.STC_CSS_ID:
+    #    "fore:#800080,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    #wx.stc.STC_CSS_IDENTIFIER:
+    #    "fore:#000000,back:#000000,face:%(helv)s,size:%(size)d,bold" % faces,
+    #wx.stc.STC_CSS_IDENTIFIER2:
+    #    "fore:#000000,back:#000000,face:%(helv)s,size:%(size)d,bold" % faces,
+    #wx.stc.STC_CSS_IMPORTANT:
+    #    "fore:#7f00bf,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    #wx.stc.STC_CSS_OPERATOR:
+    #    "fore:#7f00bf,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    #wx.stc.STC_CSS_PSEUDOCLASS:
+    #    "fore:#7f00bf,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    #wx.stc.STC_CSS_SINGLESTRING:
+    #    "fore:#7f00bf,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    #wx.stc.STC_CSS_TAG:
+    #    "fore:#000000,back:#000000,face:%(helv)s,size:%(size)d,bold" % faces,
+    #wx.stc.STC_CSS_UNKNOWN_IDENTIFIER:
+    #    "fore:#ff0000,back:#000000,face:%(helv)s,size:%(size)d,bold" % faces,
+    #wx.stc.STC_CSS_UNKNOWN_PSEUDOCLASS:
+    #    "fore:#ff0000,back:#000000,face:%(helv)s,size:%(size)d" % faces,
+    #wx.stc.STC_CSS_VALUE:
+    #    "fore:#ff00ff,back:#000000,face:%(helv)s,size:%(size)d" % faces,
 }
 
 def style_control(ctrl, faces, offset=0):
     set_style = ctrl.StyleSetSpec
     for key, value in styles(faces).iteritems():
         set_style(key + offset, value)
+    ctrl.StyleSetSpec(0, "back:#000000,fore:#999999")

@@ -2,6 +2,7 @@ import sys
 import wx
 import wx.stc as stc
 import keyword
+import os
 
 if wx.Platform == '__WXMSW__':
     faces = { 'times': 'Times New Roman',
@@ -466,11 +467,13 @@ class Editor(wx.Panel):
         main_panel.signal_can_close_tab(page_n)
 
     def openfile(self, filename, lineno=0):
-        if filename.endswith('.py'):
+        _, extension = os.path.splitext(filename)
+        if extension == '.py':
             self._ctrl = Python(self)
 
-        elif filename.endswith('.html'):
+        elif extension in ('.html', '.css', '.js'):
             self._ctrl = HTML(self)
+
         self._sizer.Add(self._ctrl, 1, wx.EXPAND, 0)
         self._ctrl.setup()
 
@@ -495,16 +498,25 @@ class Editor(wx.Panel):
 
         self._ctrl.SetText(t)
         self._ctrl.EmptyUndoBuffer()
-        self._ctrl.SetSavePoint()
+        wx.CallAfter(self._ctrl.SetSavePoint)
+
+        self.Layout()
 
         return 0
 
     def savefile(self, filename):
         f = open(filename, 'wt')
+
         try:
-            f.write(self._ctrl.GetText().encode('utf-8'))
+            text = self._ctrl.GetText().encode('utf-8')
+        except UnicodeDecodeError:
+            text = self._ctrl.GetText().encode('latin-1')
+
+        try:
+            f.write(text)
         finally:
             f.close()
+
         self._ctrl.SetSavePoint()
 
     def goto_line(self, lineno):

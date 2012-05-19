@@ -11,6 +11,11 @@ import dircache
 import re
 import controls
 
+import wx.lib.newevent
+
+(MPEventCanClose, EVT_MP_CAN_CLOSE) = wx.lib.newevent.NewCommandEvent()
+(MPEventCanQuit, EVT_MP_CAN_QUIT) = wx.lib.newevent.NewCommandEvent()
+
 if USE_VTE:
     import vte
     import gtk
@@ -246,6 +251,10 @@ if USE_VTE:
         def goto_line(self, lineno):
             #print lineno
             self.ctrl.feed_child(':%s\n' % lineno)
+
+        def is_dirty(self):
+            # Compat method with STC Editor
+            return False
 else:
     FIXED_TABS = 0
     from editor import Editor
@@ -568,7 +577,7 @@ class MainPanel(wx.Panel):
         else:
             evt.Skip()
 
-    def ClosePanel(self, cb):
+    def ClosePanel(self, for_quit=False):
         children = list(self.notebook.GetChildren())
         # need to order by desc
         # to avoid pages index changes
@@ -581,10 +590,13 @@ class MainPanel(wx.Panel):
         #    else:
         #        #self.notebook.DeletePage(i)
         #        self.notebook_close_tab(i)
+
+        # First close the viewers (errors, session, images)
         for i, page in enumerate(children):
             if not isinstance(page, Editor):
                 self.notebook_close_tab(i)
 
+        # The try to close the editors
         children = list(self.notebook.GetChildren())
         for page in children:
             if isinstance(page, Editor):
@@ -596,13 +608,26 @@ class MainPanel(wx.Panel):
         #wx.SafeYield()
 
         if USE_VTE:
+            # Not sure if this is need it
+            # to assure that all vim's processes
+            # are really closed
+            # just leaving here for now
             while gtk.events_pending():
                 gtk.main_iteration()
 
         if self.notebook.GetPageCount() <= FIXED_TABS:
-            cb(True)
-        else:
-            cb(False)
+            # Send an event saying that all tabs are closed.
+            # meaning that all files we save
+            if for_quit:
+                new_evt = MPEventCanQuit(self.GetId())
+            else:
+                new_evt = MPEventCanClose(self.GetId())
+            self.GetEventHandler().ProcessEvent(new_evt)
+            #wx.PostEvent(self, new_evt)
+
+            #cb(True)
+        #else:
+        #    cb(False)
 
     def OnActivated(self, evt):
         t = evt.GetEventObject()

@@ -26,7 +26,14 @@ class Web2pyServer(object):
             stream = self.process.GetOutputStream()
             stream.write('__quit__\n')
             stream.flush()
-            #wx.CallAfter(self.process.Kill, self.pid, wx.SIGTERM)
+
+            # wake up server to let him quit
+            import socket
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                s.connect(('', __builtin__.PORT))
+            except socket.error:
+                pass
 
         self.is_running = False
 
@@ -61,9 +68,10 @@ class Web2pyServer(object):
 class Main(toplevel.Frame):
 
     def __init__(self, w2p_path):
-        # Bind menus events
         toplevel.Frame.__init__(self, None, size=(800, 600))
         self.Bind(controls.EVT_SHELL, self.on_shell)
+        self.Bind(panels.EVT_MP_CAN_CLOSE, self.on_can_close)
+        self.Bind(panels.EVT_MP_CAN_QUIT, self.on_can_quit)
 
         self.Show()
 
@@ -89,6 +97,7 @@ class Main(toplevel.Frame):
             flag2 = False
 
         self.menu_file.Enable(self.menu_item_file_save.GetId(), flag)
+        self.menu_file.Enable(self.menu_item_file_open.GetId(), flag)
         self.menu_file.Enable(self.menu_item_file_new.GetId(), flag2)
 
     def toggle_menu_windows(self):
@@ -116,18 +125,25 @@ class Main(toplevel.Frame):
         self.server.process = None
         self.server = None
 
+    def on_can_close(self, evt):
+        if self.server and self.server.process:
+            self.server.stop()
+        #self.w2p_path = None
+        self.timer.Stop()
+        self.panel.Destroy()
+        self.panel = None
+
+    def on_can_quit(self, evt):
+        if self.server and self.server.process:
+            self.server.stop()
+        self.timer.Stop()
+        self.Destroy()
+
     def OnClose(self, evt):
         if self.panel:
-            self.timer.Stop()
-            self.panel.ClosePanel(self.DoClose)
+            self.close_web2py(for_quit=True)
         else:
             evt.Skip()
-
-    def DoClose(self, can_close):
-        if can_close:
-            if self.server and self.server.process:
-                self.server.stop()
-            self.Destroy()
 
     def open_web2py(self, w2p_path=None):
         if not w2p_path:
@@ -155,6 +171,9 @@ class Main(toplevel.Frame):
         self.SendSizeEvent()
         self.timer.Start(500)
 
+    def close_web2py(self, for_quit=False):
+        self.panel.ClosePanel(for_quit)
+
     def OnMenuAppNew(self, evt):
         name = toplevel.dialog_app_new(self)
         if name:
@@ -172,7 +191,7 @@ class Main(toplevel.Frame):
         if not self.panel:
             self.open_web2py()
         else:
-            self.panel.ClosePanel(self.ClosedPanel)
+            self.close_web2py(for_quit=False)
             self.open_web2py()
 
     def ClosedPanel(self, can_close):
@@ -185,11 +204,11 @@ class Main(toplevel.Frame):
 
     def OnMenuW2pClose(self, evt):
         if self.panel:
-            self.panel.ClosePanel(self.ClosedPanel)
+            self.close_web2py(for_quit=False)
 
     def OnMenuW2pQuit(self, evt):
         if self.panel:
-            self.panel.ClosePanel(self.DoClose)
+            self.close_web2py(for_quit=True)
         else:
             self.Close()
 
