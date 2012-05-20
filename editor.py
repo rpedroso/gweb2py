@@ -173,7 +173,7 @@ class STC(stc.StyledTextCtrl):
             text, _ = self.GetCurLine()
             pos = self.GetCurrentPos()
             c = self.GetCharAt(pos-1)
-            print c
+            #print c
             last_indent = self.GetLineIndentation(line)
             if c and chr(c) in (':', '(', '{', '['):
                 last_indent += 4

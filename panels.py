@@ -556,7 +556,6 @@ class MainPanel(wx.Panel):
         self.notebook.Refresh()
 
     def OnRightUp(self, evt):
-        print 'right_up'
         idx, flags = self.notebook.HitTest((evt.m_x, evt.m_y))
         if idx != wx.NOT_FOUND:
             self.notebook_close_tab(idx)
