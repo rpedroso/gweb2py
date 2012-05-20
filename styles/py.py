@@ -46,50 +46,50 @@ def styles(faces):
     return {
         ### Default
         stc.STC_P_DEFAULT:
-        "back:#000000,fore:#999999,face:%(helv)s,size:%(size)d" % faces,
+        "back:%(back)s,fore:#999999,face:%(helv)s,size:%(size)d" % faces,
         # Comments
         stc.STC_P_COMMENTLINE:
-        "back:#000000,fore:#5FBB5F,face:%(other)s,size:%(size)d" % faces,
+        "back:%(back)s,fore:#5FBB5F,face:%(other)s,size:%(size)d" % faces,
         # Comment-blocks
         stc.STC_P_COMMENTBLOCK:
-        "back:#000000,fore:#5FBB5F,face:%(other)s,size:%(size)d" % faces,
+        "back:%(back)s,fore:#5FBB5F,face:%(other)s,size:%(size)d" % faces,
         # Number
         stc.STC_P_NUMBER:
-        "back:#000000,fore:#44dF5F,face:%(helv)s,size:%(size)d" % faces,
+        "back:%(back)s,fore:#44dF5F,face:%(helv)s,size:%(size)d" % faces,
         # String ("string")
         stc.STC_P_STRING:
-        "back:#000000,fore:#BB5F5F,face:%(helv)s,size:%(size)d" % faces,
+        "back:%(back)s,fore:#BB5F5F,face:%(helv)s,size:%(size)d" % faces,
         # Single quoted string ('a')
         stc.STC_P_CHARACTER:
-        "back:#000000,fore:#BB5F5F,face:%(helv)s,size:%(size)d" % faces,
+        "back:%(back)s,fore:#BB5F5F,face:%(helv)s,size:%(size)d" % faces,
         # Keyword (if, while, ...)
         stc.STC_P_WORD:
-        "back:#000000,fore:#7A7BBA,face:%(helv)s,size:%(size)d,bold" % faces,
+        "back:%(back)s,fore:#7A7BBA,face:%(helv)s,size:%(size)d" % faces,
         # Triple quotes (''' triple quotes ''')
         stc.STC_P_TRIPLE:
-        "back:#000000,fore:#BB5F5F,face:%(helv)s,size:%(size)d" % faces,
+        "back:%(back)s,fore:#BB5F5F,face:%(helv)s,size:%(size)d" % faces,
         # Triple double quotes
         stc.STC_P_TRIPLEDOUBLE:
-        "back:#000000,fore:#BB5F5F,face:%(helv)s,size:%(size)d" % faces,
+        "back:%(back)s,fore:#BB5F5F,face:%(helv)s,size:%(size)d" % faces,
         # Class name definition
         stc.STC_P_CLASSNAME:
-        "back:#000000,fore:#5F5FBB,face:%(helv)s,size:%(size)d,bold" % faces,
+        "back:%(back)s,fore:#5F5FBB,face:%(helv)s,size:%(size)d" % faces,
         # Function or method name definition
         stc.STC_P_DEFNAME:
-        "back:#000000,fore:#999999,face:%(helv)s,size:%(size)d,bold" % faces,
+        "back:%(back)s,fore:#999999,face:%(helv)s,size:%(size)d" % faces,
         # Operators
         stc.STC_P_OPERATOR:
-        "back:#000000,fore:#999999,face:%(helv)s,size:%(size)d,bold" % faces,
+        "back:%(back)s,fore:#999999,face:%(helv)s,size:%(size)d" % faces,
         # Identifiers
         stc.STC_P_IDENTIFIER:
-        "back:#000000,fore:#999999,face:%(helv)s,size:%(size)d" % faces,
+        "back:%(back)s,fore:#999999,face:%(helv)s,size:%(size)d" % faces,
         # End of line where string is not closed
         stc.STC_P_STRINGEOL:
-        "back:#000000,fore:#999999,face:%(helv)s,size:%(size)d,eol" % faces,
+        "back:%(back)s,fore:#999999,face:%(helv)s,size:%(size)d,eol" % faces,
         stc.STC_P_DECORATOR:
-        "back:#000000,fore:#5F5FBB,face:%(helv)s,size:%(size)d,bold" % faces,
+        "back:%(back)s,fore:#5F5FBB,face:%(helv)s,size:%(size)d" % faces,
         stc.STC_P_WORD2:
-        "back:#000000,fore:#00005F,face:%(helv)s,size:%(size)d,bold" % faces,
+        "back:%(back)s,fore:#00005F,face:%(helv)s,size:%(size)d" % faces,
            }
 
 

@@ -11,6 +11,9 @@ if wx.Platform == '__WXMSW__':
               'other': 'Arial',
               'size' : 10,
               'size2': 8,
+              # On Windows StyleTextCtrl cannot be "full" blackto avoid
+              # the pointerto "disappear" until find a better solution
+              'back': "#292929",
              }
 elif wx.Platform == '__WXMAC__':
     faces = { 'times': 'Times New Roman',
@@ -19,6 +22,7 @@ elif wx.Platform == '__WXMAC__':
               'other': 'Monaco',
               'size' : 12,
               'size2': 10,
+              'back': "#000000",
              }
 else:
     faces = { 'times': 'Times New Roman',
@@ -27,6 +31,7 @@ else:
               'other': 'Ubuntu Mono',
               'size' : 10,
               'size2': 8,
+              'back': "#000000",
          }
 
 class STC(stc.StyledTextCtrl):
@@ -60,8 +65,8 @@ class STC(stc.StyledTextCtrl):
 
         self.MarkerDefine(self.MARK_BP, stc.STC_MARK_CIRCLE, "red", "red")
         self.MarkerDefine(self.MARK_DEBUG, stc.STC_MARK_ARROW, "yellow", "yellow")
-        self.MarkerDefine(self.MARK_LINE_BP, wx.stc.STC_MARK_BACKGROUND, 'white', 'red') 
-        self.MarkerDefine(self.MARK_LINE_DEBUG, wx.stc.STC_MARK_BACKGROUND, 'white', 'yellow') 
+        self.MarkerDefine(self.MARK_LINE_BP, wx.stc.STC_MARK_BACKGROUND, 'white', 'red')
+        self.MarkerDefine(self.MARK_LINE_DEBUG, wx.stc.STC_MARK_BACKGROUND, 'white', 'yellow')
 
         # debug margin
         self.SetMarginType(1, stc.STC_MARGIN_SYMBOL)
@@ -91,7 +96,8 @@ class STC(stc.StyledTextCtrl):
         self.MarkerDefine(stc.STC_MARKNUM_FOLDEROPENMID, stc.STC_MARK_EMPTY, "white", "black")
         self.MarkerDefine(stc.STC_MARKNUM_FOLDERMIDTAIL, stc.STC_MARK_EMPTY, "white", "black")
 
-        self.SetCaretForeground("BLUE")
+        self.SetCaretForeground("WHITE")
+        self.SetCaretWidth(2)
 
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.Bind(stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
@@ -104,7 +110,7 @@ class STC(stc.StyledTextCtrl):
 
         # Global default styles for all languages
         self.StyleSetSpec(stc.STC_STYLE_DEFAULT,
-                            "back:#000000,fore:#999999,"
+                            "back:%(back)s,fore:#999999,"
                             "face:%(helv)s,size:%(size)d" % faces)
         self.StyleClearAll()  # Reset all to be like the default
 
@@ -112,11 +118,11 @@ class STC(stc.StyledTextCtrl):
         self.StyleSetSpec(stc.STC_STYLE_LINENUMBER,
                 "back:#C0C0C0,fore:#000000,face:%(helv)s,size:%(size2)d" % faces)
         self.StyleSetSpec(stc.STC_STYLE_CONTROLCHAR,
-                "back:#000000,fore:#cdedff,face:%(other)s" % faces)
+                "back:%(back)s,fore:#cdedff,face:%(other)s" % faces)
         self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT,
-                "back:#000000,fore:#cdedff,face:%(other)s,bold")
+                "back:%(back)s,fore:#cdedff,face:%(other)s,bold")
         self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,
-                "back:#000000,fore:#FF0000,face:%(other)s,bold")
+                "back:%(back)s,fore:#FF0000,face:%(other)s,bold")
 
     def OnSavePointLeft(self, evt):
         self._dirty = True
