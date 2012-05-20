@@ -640,46 +640,52 @@ class MainPanel(wx.Panel):
         return self.rightwin.IsShown()
 
     def open_tab(self, ndir, itemtext, lineno=0):
-        ndir = os.path.abspath(ndir)
-        if IS_WIN:
-            ndir = ndir.lower()
-        ndir_isfile = os.path.isfile(ndir)
-        if (ndir_isfile
-                and os.path.splitext(ndir.lower())[-1] in ('.py', '.html',
-                    '.css', '.js', '.load', '.xml', '.json', '.rss')):
-            if ndir in self.notebook:
-                self.notebook.set_selection_by_filename(ndir)
-                if lineno > 0:
-                    self.notebook.GetCurrentPage().goto_line(lineno)
-            else:
-                editor = Editor(self.notebook)
-                editor.page_idx = self.notebook.GetPageCount()
-                editor.filename = ndir
-                self.notebook.AddPage(editor, itemtext)
-                self.notebook.set_selection_by_filename(ndir)
-                pid = editor.openfile(ndir, lineno)
-                editor.pid = pid
+        wx.BeginBusyCursor()
+        try:
+            if IS_WIN:
+                self.Freeze()
+            ndir = os.path.abspath(ndir)
+            if IS_WIN:
+                ndir = ndir.lower()
+            ndir_isfile = os.path.isfile(ndir)
+            if (ndir_isfile
+                    and os.path.splitext(ndir.lower())[-1] in ('.py', '.html',
+                        '.css', '.js', '.load', '.xml', '.json', '.rss')):
+                if ndir in self.notebook:
+                    self.notebook.set_selection_by_filename(ndir)
+                    if lineno > 0:
+                        self.notebook.GetCurrentPage().goto_line(lineno)
+                else:
+                    editor = Editor(self.notebook)
+                    editor.page_idx = self.notebook.GetPageCount()
+                    editor.filename = ndir
+                    self.notebook.AddPage(editor, itemtext)
+                    self.notebook.set_selection_by_filename(ndir)
+                    pid = editor.openfile(ndir, lineno)
+                    editor.pid = pid
 
-                editor.Refresh()
+                    editor.Refresh()
 
-                editor.SetFocus()
+                    editor.SetFocus()
 
-        elif (ndir_isfile and os.path.dirname(ndir).endswith('sessions')):
-            self.open_sessionfile(ndir, itemtext)
-        elif (ndir_isfile and os.path.dirname(ndir).endswith('cache')):
-            self.open_cachefile(ndir, itemtext)
-        elif (ndir_isfile and os.path.dirname(ndir).endswith('errors')):
-            self.open_errorfile(ndir, itemtext)
-        elif (ndir_isfile
-                and os.path.splitext(ndir.lower())[-1] in ('.png', '.jpg',
-                    '.gif', '.ico')):
-            self.open_image(ndir, itemtext)
-        elif os.path.isdir(ndir):
-            if USE_VTE:
-                self.terminal.ctrl.feed_child('\ncd %s\n' % ndir)
-
-        if IS_WIN:
-            self.Refresh()
+            elif (ndir_isfile and os.path.dirname(ndir).endswith('sessions')):
+                self.open_sessionfile(ndir, itemtext)
+            elif (ndir_isfile and os.path.dirname(ndir).endswith('cache')):
+                self.open_cachefile(ndir, itemtext)
+            elif (ndir_isfile and os.path.dirname(ndir).endswith('errors')):
+                self.open_errorfile(ndir, itemtext)
+            elif (ndir_isfile
+                    and os.path.splitext(ndir.lower())[-1] in ('.png', '.jpg',
+                        '.gif', '.ico')):
+                self.open_image(ndir, itemtext)
+            elif os.path.isdir(ndir):
+                if USE_VTE:
+                    self.terminal.ctrl.feed_child('\ncd %s\n' % ndir)
+        finally:
+            if IS_WIN:
+                self.Refresh()
+                self.Thaw()
+            wx.EndBusyCursor()
 
     def open_image(self, ndir, itemtext):
         if '<image>' in self.notebook:
