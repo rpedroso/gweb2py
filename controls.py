@@ -263,7 +263,7 @@ class ShellCtrl(TextCtrl):
 
     def ClearLine(self, lineno):
         start, end = self.GetLinePosition(lineno)
-        print start, end
+        #print start, end
         self.Replace(start, end, '')
 
     def OnKeyDown(self, evt):
@@ -330,22 +330,6 @@ else:
         def __init__(self, *args, **kwargs):
             fnb.FlatNotebook.__init__(self, *args, **kwargs)
             #self.Bind(fnb.EVT_FLATNOTEBOOK_PAGE_CLOSING, self.on_closing)
-            self.Bind(stc.EVT_STC_SAVEPOINTLEFT, self.OnSavePointLeft)
-            self.Bind(stc.EVT_STC_SAVEPOINTREACHED, self.OnSavePointReached)
-
-        def OnSavePointLeft(self, event):
-            n = self.GetSelection()
-            text = self.GetPageText(n)
-            if text and text[0] != '*':
-                text = '*%s' % text
-                self.SetPageText(n, text)
-
-        def OnSavePointReached(self, event):
-            n = self.GetSelection()
-            text = self.GetPageText(n)
-
-            if text and text[0] == '*':
-                self.SetPageText(n, text[1:])
 
         #def on_closing(self, event):
         #    self.DeletePage(event.GetSelection())
@@ -364,7 +348,22 @@ class Notebook(NotebookBase):
 
     def __init__(self, parent, style):
         NotebookBase.__init__(self, parent, wx.ID_ANY, style=style)
+        self.Bind(stc.EVT_STC_SAVEPOINTLEFT, self.OnSavePointLeft)
+        self.Bind(stc.EVT_STC_SAVEPOINTREACHED, self.OnSavePointReached)
 
+    def OnSavePointLeft(self, event):
+        n = self.GetSelection()
+        text = self.GetPageText(n)
+        if text and text[0] != '*':
+            text = '*%s' % text
+            self.SetPageText(n, text)
+
+    def OnSavePointReached(self, event):
+        n = self.GetSelection()
+        text = self.GetPageText(n)
+
+        if text and text[0] == '*':
+            self.SetPageText(n, text[1:])
 
 #class Notebook(wx.Notebook):
 #    def __init__(self, parent):
@@ -393,8 +392,8 @@ class Notebook(NotebookBase):
 
     def SetFocus(self):
         idx = self.GetSelection()
-        print idx
-        print ">>>", self.GetChildren()
+        #print idx
+        #print ">>>", self.GetChildren()
         try:
             self.GetChildren()[idx].SetFocus()
         except IndexError:
