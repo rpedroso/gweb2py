@@ -27,7 +27,7 @@ class Tree(wx.Panel):
     def __init__(self, parent):
         # this is just setup boilerplate
         wx.Panel.__init__(self, parent)
-        #self.SetDoubleBuffered(True)
+        self.SetDoubleBuffered(True)
 
         self.includeDirs = []
         self.excludeDirs = []
@@ -679,6 +679,9 @@ class MainPanel(wx.Panel):
             if USE_VTE:
                 self.terminal.ctrl.feed_child('\ncd %s\n' % ndir)
 
+        if IS_WIN:
+            self.Refresh()
+
     def open_image(self, ndir, itemtext):
         if '<image>' in self.notebook:
             self.notebook.set_selection_by_filename('<image>')
@@ -824,7 +827,7 @@ class MainPanel(wx.Panel):
 
     def notebook_close_tab(self, idx):
         self.notebook.DeletePage(idx)
-        if IS_MAC:
+        if IS_MAC or IS_WIN:
             self.Refresh()
 
     def notebook_setfocus(self):

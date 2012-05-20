@@ -12,7 +12,7 @@ class Frame(wx.Frame):
     def __init__(self, parent, size):
         wx.Frame.__init__(self, parent, size=size, title="gweb2py",
                 style=(wx.DEFAULT_FRAME_STYLE | wx.CLIP_CHILDREN))
-        self.SetDoubleBuffered(True)
+        #self.SetDoubleBuffered(True)
 
         self.server = None
         self.panel = None

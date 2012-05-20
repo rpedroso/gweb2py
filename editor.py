@@ -9,8 +9,8 @@ if wx.Platform == '__WXMSW__':
               'mono' : 'Courier New',
               'helv' : 'Arial',
               'other': 'Arial',
-              'size' : 11,
-              'size2': 9,
+              'size' : 10,
+              'size2': 8,
              }
 elif wx.Platform == '__WXMAC__':
     faces = { 'times': 'Times New Roman',
@@ -25,8 +25,8 @@ else:
               'mono' : 'Ubuntu Mono',
               'helv' : 'Ubuntu Mono',
               'other': 'Ubuntu Mono',
-              'size' : 11,
-              'size2': 9,
+              'size' : 10,
+              'size2': 8,
          }
 
 class STC(stc.StyledTextCtrl):
