@@ -31,9 +31,11 @@ class Web2pyServer(object):
             import socket
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
-                s.connect(('', __builtin__.PORT))
-            except socket.error:
+                s.connect(('127.0.0.1', __builtin__.PORT))
+            except Exception, e: #socket.error:
                 pass
+            finally:
+                s.close()
 
         self.is_running = False
 
