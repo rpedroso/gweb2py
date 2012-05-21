@@ -45,6 +45,12 @@ def get_dir_file(filepath):
 
 __builtin__.get_dir_file = get_dir_file
 
+from customfont import load_font
+load_font(opj('font', 'UbuntuMono-BI.ttf'))
+load_font(opj('font', 'UbuntuMono-B.ttf'))
+load_font(opj('font', 'UbuntuMono-RI.ttf'))
+load_font(opj('font', 'UbuntuMono-R.ttf'))
+
 
 def arguments():
     """docstring for arguments"""

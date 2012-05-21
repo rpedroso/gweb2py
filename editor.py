@@ -5,12 +5,12 @@ import keyword
 import os
 
 if wx.Platform == '__WXMSW__':
-    faces = { 'times': 'Times New Roman',
-              'mono' : 'Courier New',
-              'helv' : 'Arial',
-              'other': 'Arial',
+    faces = { 'times': 'Ubuntu Mono',
+              'mono' : 'Ubuntu Mono',
+              'helv' : 'Ubuntu Mono',
+              'other': 'Ubuntu Mono',
               'size' : 10,
-              'size2': 8,
+              'size2': 10,
               # On Windows StyleTextCtrl cannot be "full" blackto avoid
               # the pointerto "disappear" until find a better solution
               'back': "#292929",
@@ -21,7 +21,7 @@ elif wx.Platform == '__WXMAC__':
               'helv' : 'Monaco',
               'other': 'Monaco',
               'size' : 12,
-              'size2': 10,
+              'size2': 12,
               'back': "#000000",
              }
 else:
@@ -30,7 +30,7 @@ else:
               'helv' : 'Ubuntu Mono',
               'other': 'Ubuntu Mono',
               'size' : 10,
-              'size2': 8,
+              'size2': 10,
               'back': "#000000",
          }
 
