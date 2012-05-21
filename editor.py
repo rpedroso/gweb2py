@@ -119,10 +119,11 @@ class STC(stc.StyledTextCtrl):
                 "back:#C0C0C0,fore:#000000,face:%(helv)s,size:%(size2)d" % faces)
         self.StyleSetSpec(stc.STC_STYLE_CONTROLCHAR,
                 "back:%(back)s,fore:#cdedff,face:%(other)s" % faces)
+		
         self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT,
-                "back:%(back)s,fore:#cdedff,face:%(other)s,bold")
+                "back:%(back)s,fore:#cdedff,face:%(other)s,bold" % faces)
         self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,
-                "back:%(back)s,fore:#FF0000,face:%(other)s,bold")
+                "back:%(back)s,fore:#FF0000,face:%(other)s,bold" % faces)
 
     def OnSavePointLeft(self, evt):
         self._dirty = True

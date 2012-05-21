@@ -5,7 +5,7 @@ import wx
 def _windows_load_font(filename):
     from ctypes import WinDLL
     gdi32 = WinDLL("gdi32.dll")
-    gdi32.AddFontResourceA(filename)
+    gdi32.AddFontResourceW(filename)
 
 
 plat = wx.PlatformInfo
