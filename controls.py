@@ -439,3 +439,60 @@ class KeyValueList(wx.ListCtrl):
         self._data = []
         self.SetItemCount(0)
     data = property(_getdata, _setdata, _deldata)
+
+
+class TreeDict(wx.TreeCtrl):
+
+    def __init__(self, *args, **kwargs):
+        wx.TreeCtrl.__init__(self, *args, **kwargs)
+        self._dict = {}
+
+    def append_dict(self, root, d):
+        for key, value in d.iteritems():
+            if not isinstance(key, basestring):
+                key = repr(key)
+            new_item = self.AppendItem(root, key)
+            if isinstance(value, list):
+                self.append_list(new_item, value)
+            elif isinstance(value, dict):
+                self.append_dict(new_item, value)
+            elif isinstance(value, (basestring, int, long, float)):
+                if isinstance(value, basestring):
+                    self.AppendItem(new_item, value)
+                else:
+                    self.AppendItem(new_item, str(value))
+            else:
+                #self.append_list(new_item, dir(value))
+                self.AppendItem(new_item, repr(value))
+
+    def append_list(self, parent_item, values):
+        for value in values:
+            if isinstance(value, dict):
+                self.append_dict(parent_item, value)
+            elif isinstance(value, (basestring, int, long, float)):
+                if isinstance(value, basestring):
+                    self.AppendItem(parent_item, value)
+                else:
+                    self.AppendItem(parent_item, str(value))
+            elif isinstance(value, list):
+                self.append_list(parent_item, value)
+            else:
+                #self.append_list(parent_item, dir(value))
+                self.AppendItem(parent_item, repr(value))
+
+    def _getdata(self):
+        return self._data
+
+    def _setdata(self, data):
+        if self._dict:
+            self.DeleteAllItems()
+        self._dict = dict(data)
+        root = self.AddRoot("Items")
+        self.append_dict(root, self._dict)
+        self.Expand(root)
+
+    def _deldata(self):
+        self._dict = {}
+        self.DeleteAllItems()
+    data = property(_getdata, _setdata, _deldata)
+

@@ -451,11 +451,26 @@ class KeyValuePanel(wx.Panel):
 
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
-        b = wx.BoxSizer(wx.VERTICAL)
-        self.lst = controls.KeyValueList(self)
-        b.Add(self.lst, 1, wx.EXPAND, 0)
+        b = wx.BoxSizer(wx.HORIZONTAL)
+        #self._lst = controls.KeyValueList(self)
+        self._tree = controls.TreeDict(self)
+        #b.Add(self._lst, 1, wx.EXPAND, 0)
+        b.Add(self._tree, 1, wx.EXPAND, 0)
         self.SetSizer(b)
 
+    def _getdata(self):
+        #return self._lst.data
+        return self._tree.data
+
+    def _setdata(self, data):
+        #self._lst.data = data
+        self._tree.data = data
+
+    def _deldata(self):
+        #self._lst.data = []
+        self._tree.data = []
+
+    data = property(_getdata, _setdata, _deldata)
 
 class MainPanel(wx.Panel):
 
@@ -709,7 +724,7 @@ class MainPanel(wx.Panel):
             f = open(ndir, 'rb')
             data = cPickle.load(f)
             f.close()
-            page.lst.data = data.items()
+            page.data = data.items()
             page.filename = '<sessionfile>'
             self.notebook.SetPageText(page.page_idx, itemtext)
         else:
@@ -717,30 +732,33 @@ class MainPanel(wx.Panel):
             f = open(ndir, 'rb')
             data = cPickle.load(f)
             f.close()
-            page.lst.data = data.items()
+            page.data = data.items()
             page.page_idx = self.notebook.GetPageCount()
             page.filename = '<sessionfile>'
             self.notebook.AddPage(page, itemtext)
             self.notebook.SetSelection(page.page_idx)
 
     def open_cachefile(self, ndir, itemtext):
-        if '<cachefile>' in self.notebook:
-            self.notebook.set_selection_by_filename('<cachefile>')
-            page = self.notebook.GetCurrentPage()
+        try:
             f = shelve.open(ndir)
-            page.lst.data = f.items()
+        except:
+            return
+        try:
+            if '<cachefile>' in self.notebook:
+                self.notebook.set_selection_by_filename('<cachefile>')
+                page = self.notebook.GetCurrentPage()
+                page.data = f.items()
+                page.filename = '<cachefile>'
+                self.notebook.SetPageText(page.page_idx, itemtext)
+            else:
+                page = KeyValuePanel(self.notebook)
+                page.data = f.items()
+                page.page_idx = self.notebook.GetPageCount()
+                page.filename = '<cachefile>'
+                self.notebook.AddPage(page, itemtext)
+                self.notebook.SetSelection(page.page_idx)
+        finally:
             f.close()
-            page.filename = '<cachefile>'
-            self.notebook.SetPageText(page.page_idx, itemtext)
-        else:
-            page = KeyValuePanel(self.notebook)
-            f = shelve.open(ndir)
-            page.lst.data = f.items()
-            f.close()
-            page.page_idx = self.notebook.GetPageCount()
-            page.filename = '<cachefile>'
-            self.notebook.AddPage(page, itemtext)
-            self.notebook.SetSelection(page.page_idx)
 
     def open_errorfile(self, ndir, itemtext):
         import errorpanel
