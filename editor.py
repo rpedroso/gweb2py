@@ -3,6 +3,7 @@ import wx
 import wx.stc as stc
 import keyword
 import os
+from complete.python import vimcomplete
 
 if wx.Platform == '__WXMSW__':
     faces = { 'times': 'Ubuntu Mono',
@@ -105,6 +106,8 @@ class STC(stc.StyledTextCtrl):
 
         self.Bind(stc.EVT_STC_SAVEPOINTLEFT, self. OnSavePointLeft)
         self.Bind(stc.EVT_STC_SAVEPOINTREACHED, self. OnSavePointReached)
+        self.Bind(stc.EVT_STC_DWELLSTART, self. OnDwellStart)
+        self.SetMouseDwellTime(1000)
 
         self._dirty = False
 
@@ -119,7 +122,7 @@ class STC(stc.StyledTextCtrl):
                 "back:#C0C0C0,fore:#000000,face:%(helv)s,size:%(size2)d" % faces)
         self.StyleSetSpec(stc.STC_STYLE_CONTROLCHAR,
                 "back:%(back)s,fore:#cdedff,face:%(other)s" % faces)
-		
+
         self.StyleSetSpec(stc.STC_STYLE_BRACELIGHT,
                 "back:%(back)s,fore:#cdedff,face:%(other)s,bold" % faces)
         self.StyleSetSpec(stc.STC_STYLE_BRACEBAD,
@@ -133,51 +136,49 @@ class STC(stc.StyledTextCtrl):
         self._dirty = False
         evt.Skip()
 
+    def OnDwellStart(self, event):
+        pos = event.Position
+        if pos < 0:
+            if self.CallTipActive():
+                self.CallTipCancel()
+            return
+
+        self._show_code_tips(pos)
+
     def OnKeyDown(self, event):
         if self.CallTipActive():
             self.CallTipCancel()
+
         key = event.GetKeyCode()
-
         RETURN = (wx.WXK_NUMPAD_ENTER, wx.WXK_RETURN)
-        if key in RETURN and event.ControlDown():
-            # Tips
-            if event.ShiftDown():
-                pos = self.GetCurrentPos()
-                self.CallTipSetBackground("yellow")
-                self.CallTipShow(pos, 'lots of of text: blah, blah, blah\n\n'
-                                 'show some suff, maybe parameters..\n\n'
-                                 'fubar(param1, param2)')
+
+        if (key == ord('(') or
+            (event.ShiftDown() and key == wx.WXK_SPACE)): # and key != ord('.'))):
+            ### Tips
+            pos = self.GetCurrentPos()
+            self._show_code_tips(pos-2)
+
+            if key == ord('('):
+                event.Skip()
+
+        elif ((key == ord('.') and not event.ShiftDown())
+                or (key == wx.WXK_SPACE and event.ControlDown())):
             # Code completion
-            else:
-                #lst = []
-                #for x in range(50000):
-                #    lst.append('%05d' % x)
-                #st = " ".join(lst)
-                #print len(st)
-                #self.AutoCompShow(0, st)
+            pos = self.GetCurrentPos()
+            wx.FutureCall(100, self._show_code_completation, pos)
+            event.Skip()
 
-                kw = keyword.kwlist[:]
-                #kw.append("this_is_a_much_much_much_much_much_much_much_longer_value")
-
-                kw.sort()  # Python sorts are case sensitive
-                self.AutoCompSetIgnoreCase(False)  # so this needs to match
-
-                ## Images are specified with a appended "?type"
-                #for i in range(len(kw)):
-                #    if kw[i] in keyword.kwlist:
-                #        kw[i] = kw[i] + "?1"
-
-                self.AutoCompShow(0, " ".join(kw))
-
-        elif key in RETURN:
+        elif key in RETURN and not self.AutoCompActive():
             line = self.GetCurrentLine()
             text, _ = self.GetCurLine()
             pos = self.GetCurrentPos()
             c = self.GetCharAt(pos-1)
-            #print c
+
             last_indent = self.GetLineIndentation(line)
-            if c and chr(c) in (':', '(', '{', '['):
+            if c and chr(c) in ':({[':
                 last_indent += 4
+            elif 'raise' in text:
+                last_indent -= 4
             elif 'return' in text:
                 last_indent -= 4
             elif 'break' in text:
@@ -186,10 +187,40 @@ class STC(stc.StyledTextCtrl):
                 last_indent -= 4
 
             self.NewLine()
-            #self.SetLineIndentation(line+1, last_indent)
             self.AddText(' '*last_indent)
         else:
             event.Skip()
+
+    def _show_code_tips(self, pos):
+        line = self.GetCurrentLine() + 1
+        text = self.GetText().encode("utf-8")
+        s = self.WordStartPosition(pos, 1)
+        e = self.WordEndPosition(pos, 1)
+        word = self.GetTextRange(s, e)
+        kws = vimcomplete(word.strip()+'(', "", text, line)
+        if len(kws) == 1:
+            tip = kws[0]['info']
+            self.CallTipSetBackground("#102010")
+            if len(tip) > 512:
+                tip = "%s ..." % tip[:512]
+            self.CallTipShow(pos, tip)
+
+    def _show_code_completation(self, pos):
+        line = self.GetCurrentLine() + 1
+        #linetext, _ = self.GetCurLine()
+        #self.AddText(u'.')
+        text = self.GetText().encode("utf-8")
+        s = self.WordStartPosition(pos, 1)
+        e = self.WordEndPosition(pos, 1)
+        word = self.GetTextRange(s, e)
+        kws = vimcomplete(word.strip(), "", text, line)
+        #print repr(kws)
+        if kws:
+            kw = map(lambda x: x['word'], kws)
+            kw.sort()
+            self.AutoCompSetSeparator(ord('|'))
+            self.AutoCompSetIgnoreCase(False)
+            self.AutoCompShow(0, "|".join(kw))
 
     def OnUpdateUI(self, evt):
         # check for matching braces
@@ -337,6 +368,9 @@ class Python(STC):
         self.SetTabWidth(4)             # Proscribed tab size for wx
         self.SetUseTabs(False)          # Use spaces rather than tabs, or
                                         # TabTimmy will complain!    
+        self.SetWordChars('abcdefghijklmnopqrstuvwxyz'
+                            'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                            '0123456789._')
 
 class HTML(STC):
     OFFSET_CURLY = 80 # ASP VBScript styles will be replaced with TeX styles
@@ -558,6 +592,8 @@ class Editor(wx.Panel):
 
 
 if __name__ == '__main__':
+    import sys
+    sys.path.insert(0, '/home/rpedroso/Projects/sandbox/web2py')
     app = wx.App()
     f = wx.Frame(None)
     sizer = wx.BoxSizer(wx.VERTICAL)
