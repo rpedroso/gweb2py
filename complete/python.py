@@ -158,7 +158,7 @@ class Completer(object):
         from gluon.languages import translator
         self.compldict['T'] = T = translator(request)
         from gluon.dal import DAL
-        self.compldict['db'] = db = DAL("sqlite://memory")
+        self.compldict['db'] = db = DAL("sqlite:memory")
         from gluon import current
         current.request = request
         current.session = session
