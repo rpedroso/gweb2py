@@ -123,8 +123,12 @@ class DataGrid(grid.Grid):
         self.AutoSizeColumns()
 
     def clear_all(self):
-        self.DeleteRows(pos=0, numRows=self.GetNumberRows(), updateLabels=True)
-        self.DeleteCols(pos=0, numCols=self.GetNumberCols(), updateLabels=True)
+        nrows = self.GetNumberRows()
+        ncols = self.GetNumberCols()
+        if nrows > 0:
+            self.DeleteRows(pos=0, numRows=nrows, updateLabels=True)
+        if ncols > 0:
+            self.DeleteCols(pos=0, numCols=ncols, updateLabels=True)
 
     def set_data(self, header, data):
         self.clear_all()
@@ -376,7 +380,7 @@ if __name__ == '__main__':
     app = wx.App(0)
     f = wx.Frame(None, size=(600,400))
     f.log_append_text = log
-    filename = '/home/rpedroso/Projects/sandbox/web2py/applications/store/databases/minhaloja.sqlite'
+    filename = sys.argv[1]
     p = Viewer(f, f, filename=filename)
     f.Show()
     app.MainLoop()
