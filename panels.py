@@ -352,6 +352,9 @@ class LogPanel(wx.Panel):
         t = t.decode('utf-8', 'replace')
         self.t_shell.AppendText(t)
 
+    def set_selection(self, idx):
+        self.notebook.SetSelection(idx)
+
 
 class BitmapWindow(wx.Window):
 
@@ -693,6 +696,8 @@ class MainPanel(wx.Panel):
                     and os.path.splitext(ndir.lower())[-1] in ('.png', '.jpg',
                         '.gif', '.ico')):
                 self.open_image(ndir, itemtext)
+            elif (ndir_isfile and os.path.dirname(ndir).endswith('databases')):
+                self.open_dbviewer(ndir, itemtext)
             elif os.path.isdir(ndir):
                 if USE_VTE:
                     self.terminal.ctrl.feed_child('\ncd %s\n' % ndir)
@@ -775,6 +780,28 @@ class MainPanel(wx.Panel):
         page.filename = '<errorfile>'
         page.set_error(errorpanel.Error(cPickle.load(f)))
         f.close()
+
+    def open_dbviewer(self, ndir, itemtext):
+        import dbbrowser
+        if ndir in self.notebook:
+            self.notebook.set_selection_by_filename(ndir)
+            page = self.notebook.GetCurrentPage()
+        else:
+            page = dbbrowser.Viewer(self.notebook, self)
+            try:
+                page.attach_db(ndir)
+            except:
+                import traceback
+                tb = traceback.format_exc()
+                self.log_append_text('stderr', "%s\n" % tb)
+                self.log.set_selection(2)
+                page.Destroy()
+                return
+            page.page_idx = self.notebook.GetPageCount()
+            self.notebook.AddPage(page, 'DB')
+            self.notebook.SetSelection(page.page_idx)
+        self.log.set_selection(1)
+        page.filename = ndir
 
     # FIXME: Called from errorpanel. Make it an event
     def JumpToLine(self, line, ndir):
